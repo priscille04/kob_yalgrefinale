@@ -31,9 +31,21 @@ class AuthController extends Controller
             'role' => $request->role
         ]);
 
+        // Auto-créer le profil Client ou Producteur
+        if ($request->role === 'client') {
+            $utilisateur->client()->create(['adresse' => $request->input('adresse', '')]);
+        } elseif ($request->role === 'producteur') {
+            $utilisateur->producteur()->create([
+                'type_culture' => $request->input('type_culture', ''),
+                'localisation' => $request->input('localisation', ''),
+            ]);
+        }
+
+        $utilisateur->load('client', 'producteur');
+
         return response()->json([
             'message' => 'Utilisateur créé avec succès',
-            'utilisateur' => $utilisateur,
+            'utilisateur' => $this->formatUser($utilisateur),
             'token' => $utilisateur->createToken('auth_token')->plainTextToken
         ], 201);
     }
@@ -62,9 +74,11 @@ class AuthController extends Controller
             ], 401);
         }
 
+        $utilisateur->load('client', 'producteur');
+
         return response()->json([
             'message' => 'Connexion réussie',
-            'utilisateur' => $utilisateur,
+            'utilisateur' => $this->formatUser($utilisateur),
             'token' => $utilisateur->createToken('auth_token')->plainTextToken
         ]);
     }
@@ -74,7 +88,9 @@ class AuthController extends Controller
      */
     public function me(Request $request)
     {
-        return response()->json($request->user());
+        $utilisateur = $request->user();
+        $utilisateur->load('client', 'producteur');
+        return response()->json($this->formatUser($utilisateur));
     }
 
     /**
@@ -102,5 +118,17 @@ class AuthController extends Controller
             'message' => 'Token rafraîchi avec succès',
             'token' => $user->createToken('auth_token')->plainTextToken
         ]);
+    }
+
+    /**
+     * Formater l'utilisateur avec client_id / producteur_id
+     */
+    private function formatUser(Utilisateur $utilisateur): array
+    {
+        $data = $utilisateur->toArray();
+        $data['client_id'] = $utilisateur->client?->id;
+        $data['producteur_id'] = $utilisateur->producteur?->id;
+        unset($data['client'], $data['producteur']);
+        return $data;
     }
 }

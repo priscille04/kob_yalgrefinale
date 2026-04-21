@@ -54,7 +54,7 @@ class UtilisateurController extends Controller
             $request->merge(['mot_de_passe' => Hash::make($request->mot_de_passe)]);
         }
 
-        $utilisateur->update($request->all());
+        $utilisateur->update($request->only('nom', 'email', 'telephone', 'mot_de_passe', 'role'));
 
         return response()->json($utilisateur);
     }

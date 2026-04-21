@@ -11,7 +11,8 @@ class Commande extends Model
         'produit_id',
         'quantite',
         'total',
-        'statut'
+        'statut',
+        'motif_refus'
     ];
 
     public function client()
