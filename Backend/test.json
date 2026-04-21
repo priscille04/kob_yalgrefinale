@@ -1,0 +1,7 @@
+﻿{
+    "nom": "Jean Dupont",
+    "email": "jean@test.com", 
+    "telephone": "0612345678",
+    "mot_de_passe": "password123",
+    "role": "client"
+}
