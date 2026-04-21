@@ -8,9 +8,10 @@ use Illuminate\Http\Request;
 
 class NotificationController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        return response()->json(Notification::with('utilisateur')->get());
+        if ($request->has('all')) return response()->json(Notification::with('utilisateur')->get());
+        return response()->json(Notification::with('utilisateur')->orderByDesc('created_at')->paginate($request->input('per_page', 15)));
     }
 
     public function store(Request $request)
@@ -22,7 +23,7 @@ class NotificationController extends Controller
             'lu' => 'boolean'
         ]);
 
-        $notification = Notification::create($request->all());
+        $notification = Notification::create($request->only(['utilisateur_id', 'titre', 'message', 'lu']));
         return response()->json($notification->load('utilisateur'), 201);
     }
 
@@ -40,7 +41,7 @@ class NotificationController extends Controller
             'lu' => 'boolean'
         ]);
 
-        $notification->update($request->all());
+        $notification->update($request->only(['utilisateur_id', 'titre', 'message', 'lu']));
         return response()->json($notification->load('utilisateur'));
     }
 

@@ -8,9 +8,10 @@ use Illuminate\Http\Request;
 
 class ConseilAgricoleController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        return response()->json(ConseilAgricole::all());
+        if ($request->has('all')) return response()->json(ConseilAgricole::all());
+        return response()->json(ConseilAgricole::paginate($request->input('per_page', 15)));
     }
 
     public function store(Request $request)
@@ -20,7 +21,7 @@ class ConseilAgricoleController extends Controller
             'contenu' => 'required|string'
         ]);
 
-        $conseil = ConseilAgricole::create($request->all());
+        $conseil = ConseilAgricole::create($request->only(['titre', 'contenu']));
         return response()->json($conseil, 201);
     }
 
@@ -36,7 +37,7 @@ class ConseilAgricoleController extends Controller
             'contenu' => 'sometimes|required|string'
         ]);
 
-        $conseilAgricole->update($request->all());
+        $conseilAgricole->update($request->only(['titre', 'contenu']));
         return response()->json($conseilAgricole);
     }
 

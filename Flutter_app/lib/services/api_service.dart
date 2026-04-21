@@ -110,6 +110,7 @@ class ApiService {
     if (typeproduitId != null) {
       params['typeproduit_id'] = typeproduitId.toString();
     }
+    params['all'] = '1';
     final uri = Uri.parse(
       '$_v1/produits',
     ).replace(queryParameters: params.isNotEmpty ? params : null);
@@ -154,6 +155,7 @@ class ApiService {
     final params = <String, String>{};
     if (clientId != null) params['client_id'] = clientId.toString();
     if (statut != null) params['statut'] = statut;
+    params['all'] = '1';
     final uri = Uri.parse(
       '$_v1/commandes',
     ).replace(queryParameters: params.isNotEmpty ? params : null);
@@ -198,7 +200,7 @@ class ApiService {
   // CONSEILS
   static Future<List<dynamic>> getConseils() async {
     final response = await http.get(
-      Uri.parse('$_v1/conseils-agricoles'),
+      Uri.parse('$_v1/conseils-agricoles?all=1'),
       headers: await _headers(),
     );
     if (response.statusCode == 200) {
@@ -210,7 +212,7 @@ class ApiService {
   // ANNONCES
   static Future<List<dynamic>> getAnnonces() async {
     final response = await http.get(
-      Uri.parse('$_v1/annonces'),
+      Uri.parse('$_v1/annonces?all=1'),
       headers: await _headers(),
     );
     if (response.statusCode == 200) {
@@ -222,7 +224,7 @@ class ApiService {
   // NOTIFICATIONS
   static Future<List<dynamic>> getNotifications() async {
     final response = await http.get(
-      Uri.parse('$_v1/notifications'),
+      Uri.parse('$_v1/notifications?all=1'),
       headers: await _headers(),
     );
     if (response.statusCode == 200) {

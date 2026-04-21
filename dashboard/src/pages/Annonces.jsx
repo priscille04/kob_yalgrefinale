@@ -11,12 +11,13 @@ export default function Annonces() {
     const [form, setForm] = useState({ titre: '', contenu: '', producteur_id: '' });
     const [saving, setSaving] = useState(false);
     const [error, setError] = useState('');
+    const [producteurs, setProducteurs] = useState([]);
 
     useEffect(() => { loadAnnonces(); }, []);
 
     const loadAnnonces = async () => {
         try {
-            const { data } = await api.get('/v1/annonces');
+            const { data } = await api.get('/v1/annonces?all=true');
             setAnnonces(data.data || data || []);
         } catch (err) {
             console.error(err);
@@ -35,15 +36,26 @@ export default function Annonces() {
         }
     };
 
+    const loadProducteurs = async () => {
+        try {
+            const { data } = await api.get('/v1/producteurs?all=true');
+            setProducteurs(data.data || data || []);
+        } catch (err) {
+            console.error(err);
+        }
+    };
+
     const openEdit = (a) => {
         setEditing(a);
         setForm({ titre: a.titre, contenu: a.contenu, producteur_id: a.producteur_id || '' });
+        loadProducteurs();
         setShowModal(true);
     };
 
     const openCreate = () => {
         setEditing(null);
         setForm({ titre: '', contenu: '', producteur_id: '' });
+        loadProducteurs();
         setShowModal(true);
     };
 
@@ -141,7 +153,10 @@ export default function Annonces() {
                         <form onSubmit={handleSubmit} className="space-y-3">
                             <input type="text" required placeholder="Titre" value={form.titre} onChange={(e) => setForm({ ...form, titre: e.target.value })} className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm outline-none focus:ring-2 focus:ring-green-500" />
                             <textarea required placeholder="Contenu de l'annonce..." value={form.contenu} onChange={(e) => setForm({ ...form, contenu: e.target.value })} rows="4" className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm outline-none focus:ring-2 focus:ring-green-500" />
-                            <input type="number" required placeholder="ID Producteur" value={form.producteur_id} onChange={(e) => setForm({ ...form, producteur_id: e.target.value })} className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm outline-none focus:ring-2 focus:ring-green-500" />
+                            <select required value={form.producteur_id} onChange={(e) => setForm({ ...form, producteur_id: e.target.value })} className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm outline-none focus:ring-2 focus:ring-green-500">
+                                <option value="">Producteur...</option>
+                                {producteurs.map((p) => <option key={p.id} value={p.id}>{p.utilisateur?.nom || `#${p.id}`}</option>)}
+                            </select>
                             <button type="submit" disabled={saving} className="w-full bg-green-600 hover:bg-green-700 text-white py-2 rounded-lg text-sm font-medium transition flex items-center justify-center gap-2 disabled:opacity-50">
                                 {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Check className="w-4 h-4" />}
                                 {editing ? 'Mettre à jour' : 'Créer'}

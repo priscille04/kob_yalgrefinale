@@ -8,9 +8,10 @@ use Illuminate\Http\Request;
 
 class AnnonceController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        return response()->json(Annonce::with('producteur')->get());
+        if ($request->has('all')) return response()->json(Annonce::with('producteur')->get());
+        return response()->json(Annonce::with('producteur')->paginate($request->input('per_page', 15)));
     }
 
     public function store(Request $request)
@@ -21,7 +22,7 @@ class AnnonceController extends Controller
             'contenu' => 'required|string'
         ]);
 
-        $annonce = Annonce::create($request->all());
+        $annonce = Annonce::create($request->only(['producteur_id', 'titre', 'contenu']));
         return response()->json($annonce->load('producteur'), 201);
     }
 
@@ -38,7 +39,7 @@ class AnnonceController extends Controller
             'contenu' => 'sometimes|required|string'
         ]);
 
-        $annonce->update($request->all());
+        $annonce->update($request->only(['producteur_id', 'titre', 'contenu']));
         return response()->json($annonce->load('producteur'));
     }
 

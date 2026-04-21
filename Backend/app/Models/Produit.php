@@ -23,7 +23,7 @@ class Produit extends Model
 
     public function typeProduit()
     {
-        return $this->belongsTo(TypeProduit::class);
+        return $this->belongsTo(TypeProduit::class, 'typeproduit_id');
     }
 
     public function commandes()

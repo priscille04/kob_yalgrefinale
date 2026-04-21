@@ -8,9 +8,10 @@ use Illuminate\Http\Request;
 
 class ProducteurController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        return response()->json(Producteur::with('utilisateur')->get());
+        if ($request->has('all')) return response()->json(Producteur::with('utilisateur')->get());
+        return response()->json(Producteur::with('utilisateur')->paginate($request->input('per_page', 15)));
     }
 
     public function store(Request $request)
@@ -21,7 +22,7 @@ class ProducteurController extends Controller
             'localisation' => 'nullable|string|max:255'
         ]);
 
-        $producteur = Producteur::create($request->all());
+        $producteur = Producteur::create($request->only(['utilisateur_id', 'type_culture', 'localisation']));
         return response()->json($producteur->load('utilisateur'), 201);
     }
 
@@ -38,7 +39,7 @@ class ProducteurController extends Controller
             'localisation' => 'nullable|string|max:255'
         ]);
 
-        $producteur->update($request->all());
+        $producteur->update($request->only(['utilisateur_id', 'type_culture', 'localisation']));
         return response()->json($producteur->load('utilisateur'));
     }
 

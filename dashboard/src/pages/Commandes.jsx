@@ -15,7 +15,7 @@ export default function Commandes() {
 
     const loadOrders = async () => {
         try {
-            const { data } = await api.get('/v1/commandes');
+            const { data } = await api.get('/v1/commandes?all=true');
             setOrders(data.data || data || []);
         } catch (err) {
             console.error(err);

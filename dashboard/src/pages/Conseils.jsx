@@ -16,7 +16,7 @@ export default function Conseils() {
 
     const loadConseils = async () => {
         try {
-            const { data } = await api.get('/v1/conseils-agricoles');
+            const { data } = await api.get('/v1/conseils-agricoles?all=true');
             setConseils(data.data || data || []);
         } catch (err) {
             console.error(err);

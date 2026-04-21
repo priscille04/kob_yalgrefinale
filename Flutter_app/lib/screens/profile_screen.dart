@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/auth_provider.dart';
+import '../services/api_service.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -170,18 +171,31 @@ class _ProfileScreenState extends State<ProfileScreen> {
   Future<void> _save() async {
     setState(() => _saving = true);
     final auth = context.read<AuthProvider>();
-    await auth.updateUser({
+    final data = {
       'nom': _nomCtrl.text,
       'email': _emailCtrl.text,
       'telephone': _telephoneCtrl.text,
-    });
+    };
+    try {
+      await ApiService.updateProfile(auth.userId, data);
+      await auth.updateUser(data);
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Profil mis à jour'),
+          backgroundColor: Colors.green,
+        ),
+      );
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Erreur: $e'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
     if (!mounted) return;
     setState(() => _saving = false);
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Profil mis à jour'),
-        backgroundColor: Colors.green,
-      ),
-    );
   }
 }

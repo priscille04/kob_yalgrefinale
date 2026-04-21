@@ -20,7 +20,7 @@ export default function Produits() {
 
     const loadProducts = async () => {
         try {
-            const { data } = await api.get('/v1/produits');
+            const { data } = await api.get('/v1/produits?all=true');
             setProducts(data.data || data || []);
         } catch (err) {
             console.error(err);
@@ -31,7 +31,7 @@ export default function Produits() {
 
     const loadDropdowns = async () => {
         try {
-            const [pRes, tRes] = await Promise.all([api.get('/v1/producteurs'), api.get('/v1/typeproduits')]);
+            const [pRes, tRes] = await Promise.all([api.get('/v1/producteurs?all=true'), api.get('/v1/typeproduits?all=true')]);
             setProducteurs(pRes.data.data || pRes.data || []);
             setTypeProduits(tRes.data.data || tRes.data || []);
         } catch (err) {

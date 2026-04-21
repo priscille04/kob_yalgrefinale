@@ -16,10 +16,10 @@ export default function Dashboard() {
     const loadStats = async () => {
         try {
             const [users, products, orders, producers] = await Promise.all([
-                api.get('/v1/utilisateurs'),
-                api.get('/v1/produits'),
-                api.get('/v1/commandes'),
-                api.get('/v1/producteurs'),
+                api.get('/v1/utilisateurs?all=true'),
+                api.get('/v1/produits?all=true'),
+                api.get('/v1/commandes?all=true'),
+                api.get('/v1/producteurs?all=true'),
             ]);
 
             const allOrders = orders.data.data || orders.data || [];

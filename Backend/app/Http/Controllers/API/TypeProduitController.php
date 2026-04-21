@@ -8,9 +8,10 @@ use Illuminate\Http\Request;
 
 class TypeProduitController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        return response()->json(TypeProduit::with('produits')->get());
+        if ($request->has('all')) return response()->json(TypeProduit::with('produits')->get());
+        return response()->json(TypeProduit::with('produits')->paginate($request->input('per_page', 15)));
     }
 
     public function store(Request $request)
@@ -19,7 +20,7 @@ class TypeProduitController extends Controller
             'nom' => 'required|string|max:255|unique:typeproduits'
         ]);
 
-        $typeProduit = TypeProduit::create($request->all());
+        $typeProduit = TypeProduit::create($request->only(['nom']));
         return response()->json($typeProduit, 201);
     }
 
@@ -34,7 +35,7 @@ class TypeProduitController extends Controller
             'nom' => 'sometimes|required|string|max:255|unique:typeproduits,nom,' . $typeProduit->id
         ]);
 
-        $typeProduit->update($request->all());
+        $typeProduit->update($request->only(['nom']));
         return response()->json($typeProduit);
     }
 

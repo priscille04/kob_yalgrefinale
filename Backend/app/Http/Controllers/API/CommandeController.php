@@ -25,7 +25,8 @@ class CommandeController extends Controller
             $query->where('produit_id', $request->produit_id);
         }
 
-        return response()->json($query->latest()->get());
+        if ($request->has('all')) return response()->json($query->latest()->get());
+        return response()->json($query->latest()->paginate($request->input('per_page', 15)));
     }
 
     public function store(Request $request)

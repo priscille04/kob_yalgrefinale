@@ -9,9 +9,10 @@ use Illuminate\Support\Facades\Hash;
 
 class UtilisateurController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        return response()->json(Utilisateur::all());
+        if ($request->has('all')) return response()->json(Utilisateur::all());
+        return response()->json(Utilisateur::paginate($request->input('per_page', 15)));
     }
 
     public function store(Request $request)

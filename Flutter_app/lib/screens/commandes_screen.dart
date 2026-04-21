@@ -69,6 +69,7 @@ class _CommandesScreenState extends State<CommandesScreen> {
               _filterChip('en_cours', 'En cours'),
               _filterChip('livree', 'Livrée'),
               _filterChip('annulee', 'Annulée'),
+              _filterChip('refusee', 'Refusée'),
             ],
           ),
         ),

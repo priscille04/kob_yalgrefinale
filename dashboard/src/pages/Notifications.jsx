@@ -15,7 +15,7 @@ export default function Notifications() {
 
     const loadNotifications = async () => {
         try {
-            const { data } = await api.get('/v1/notifications');
+            const { data } = await api.get('/v1/notifications?all=true');
             setNotifications(data.data || data || []);
         } catch (err) {
             console.error(err);
@@ -26,7 +26,7 @@ export default function Notifications() {
 
     const loadUsers = async () => {
         try {
-            const { data } = await api.get('/v1/utilisateurs');
+            const { data } = await api.get('/v1/utilisateurs?all=true');
             setUsers(data.data || data || []);
         } catch (err) {
             console.error(err);

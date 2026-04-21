@@ -41,7 +41,8 @@ class ProduitController extends Controller
         $order = $request->input('order', 'desc');
         $query->orderBy($sort, $order);
 
-        return response()->json($query->get());
+        if ($request->has('all')) return response()->json($query->get());
+        return response()->json($query->paginate($request->input('per_page', 15)));
     }
 
     public function store(Request $request)

@@ -8,9 +8,10 @@ use Illuminate\Http\Request;
 
 class ServiceMetheoController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        return response()->json(ServiceMetheo::all());
+        if ($request->has('all')) return response()->json(ServiceMetheo::all());
+        return response()->json(ServiceMetheo::paginate($request->input('per_page', 15)));
     }
 
     public function store(Request $request)
@@ -23,7 +24,7 @@ class ServiceMetheoController extends Controller
             'humidite' => 'nullable|string|max:255'
         ]);
 
-        $service = ServiceMetheo::create($request->all());
+        $service = ServiceMetheo::create($request->only(['ville', 'temperature', 'pluie_probable', 'vent', 'humidite']));
         return response()->json($service, 201);
     }
 
@@ -42,7 +43,7 @@ class ServiceMetheoController extends Controller
             'humidite' => 'nullable|string|max:255'
         ]);
 
-        $serviceMetheo->update($request->all());
+        $serviceMetheo->update($request->only(['ville', 'temperature', 'pluie_probable', 'vent', 'humidite']));
         return response()->json($serviceMetheo);
     }
 

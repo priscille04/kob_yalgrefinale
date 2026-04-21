@@ -15,7 +15,7 @@ export default function TypeProduits() {
 
     const loadTypes = async () => {
         try {
-            const { data } = await api.get('/v1/typeproduits');
+            const { data } = await api.get('/v1/typeproduits?all=true');
             setTypes(data.data || data || []);
         } catch (err) {
             console.error(err);

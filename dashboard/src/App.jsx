@@ -27,6 +27,7 @@ export default function App() {
             <Route path="annonces" element={<Annonces />} />
             <Route path="typeproduits" element={<TypeProduits />} />
             <Route path="notifications" element={<Notifications />} />
+            <Route path="*" element={<div className="flex items-center justify-center h-64"><p className="text-gray-500 text-lg">Page introuvable (404)</p></div>} />
           </Route>
         </Routes>
       </BrowserRouter>
