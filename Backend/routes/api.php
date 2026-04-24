@@ -46,6 +46,7 @@ Route::prefix('v1')->group(function () {
     Route::get('typeproduits/{typeproduit}', [TypeProduitController::class, 'show']);
 
     Route::get('meteo', [MeteoController::class, 'getByVille']);
+    Route::get('meteo/coords', [MeteoController::class, 'getByCoords']);
     Route::get('meteo/previsions', [MeteoController::class, 'previsions']);
 });
 

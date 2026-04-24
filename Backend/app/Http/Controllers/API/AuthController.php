@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Utilisateur;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Validation\ValidationException;
 
 class AuthController extends Controller
@@ -15,39 +16,46 @@ class AuthController extends Controller
      */
     public function register(Request $request)
     {
-        $request->validate([
-            'nom' => 'required|string|max:255',
-            'email' => 'required|string|email|max:255|unique:utilisateurs',
-            'telephone' => 'nullable|string|max:255',
-            'mot_de_passe' => 'required|string|min:6',
-            'role' => 'required|in:client,producteur,admin'
-        ]);
-
-        $utilisateur = Utilisateur::create([
-            'nom' => $request->nom,
-            'email' => $request->email,
-            'telephone' => $request->telephone,
-            'mot_de_passe' => Hash::make($request->mot_de_passe),
-            'role' => $request->role
-        ]);
-
-        // Auto-créer le profil Client ou Producteur
-        if ($request->role === 'client') {
-            $utilisateur->client()->create(['adresse' => $request->input('adresse', '')]);
-        } elseif ($request->role === 'producteur') {
-            $utilisateur->producteur()->create([
-                'type_culture' => $request->input('type_culture', ''),
-                'localisation' => $request->input('localisation', ''),
+        try {
+            $request->validate([
+                'nom' => 'required|string|max:255',
+                'email' => 'required|string|email|max:255|unique:utilisateurs',
+                'telephone' => 'nullable|string|max:255',
+                'mot_de_passe' => 'required|string|min:6',
+                'role' => 'required|in:client,producteur,admin'
             ]);
+
+            $utilisateur = Utilisateur::create([
+                'nom' => $request->nom,
+                'email' => $request->email,
+                'telephone' => $request->telephone,
+                'mot_de_passe' => Hash::make($request->mot_de_passe),
+                'role' => $request->role
+            ]);
+
+            // Auto-créer le profil Client ou Producteur
+            if ($request->role === 'client') {
+                $utilisateur->client()->create(['adresse' => $request->input('adresse', '')]);
+            } elseif ($request->role === 'producteur') {
+                $utilisateur->producteur()->create([
+                    'type_culture' => $request->input('type_culture', ''),
+                    'localisation' => $request->input('localisation', ''),
+                ]);
+            }
+
+            $utilisateur->load('client', 'producteur');
+
+            return response()->json([
+                'message' => 'Utilisateur créé avec succès',
+                'utilisateur' => $this->formatUser($utilisateur),
+                'token' => $utilisateur->createToken('auth_token')->plainTextToken
+            ], 201);
+        } catch (\Exception $e) {
+            Log::error('Registration error: ' . $e->getMessage());
+            return response()->json([
+                'message' => 'Erreur lors de l\'inscription: ' . $e->getMessage()
+            ], 500);
         }
-
-        $utilisateur->load('client', 'producteur');
-
-        return response()->json([
-            'message' => 'Utilisateur créé avec succès',
-            'utilisateur' => $this->formatUser($utilisateur),
-            'token' => $utilisateur->createToken('auth_token')->plainTextToken
-        ], 201);
     }
 
     /**

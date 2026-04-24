@@ -1,8 +1,11 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import '../services/api_service.dart';
 
 class MeteoScreen extends StatefulWidget {
-  const MeteoScreen({super.key});
+  final double? latitude;
+  final double? longitude;
+
+  const MeteoScreen({super.key, this.latitude, this.longitude});
 
   @override
   State<MeteoScreen> createState() => _MeteoScreenState();
@@ -17,7 +20,12 @@ class _MeteoScreenState extends State<MeteoScreen> {
   @override
   void initState() {
     super.initState();
-    _load();
+    // Si des coordonnées sont fournies, utiliser la localisation
+    if (widget.latitude != null && widget.longitude != null) {
+      _loadByLocation();
+    } else {
+      _load();
+    }
   }
 
   Future<void> _load() async {
@@ -38,6 +46,34 @@ class _MeteoScreenState extends State<MeteoScreen> {
     } else {
       setState(() {
         _error = 'Impossible de charger la météo';
+        _loading = false;
+      });
+    }
+  }
+
+  Future<void> _loadByLocation() async {
+    if (widget.latitude == null || widget.longitude == null) return;
+
+    setState(() {
+      _loading = true;
+      _error = null;
+      _villeCtrl.text = 'Votre position';
+    });
+
+    final data = await ApiService.getMeteoByCoords(
+      widget.latitude!,
+      widget.longitude!,
+    );
+
+    if (!mounted) return;
+    if (data != null) {
+      setState(() {
+        _meteo = data;
+        _loading = false;
+      });
+    } else {
+      setState(() {
+        _error = 'Impossible de charger la météo pour votre position';
         _loading = false;
       });
     }
@@ -99,69 +135,51 @@ class _MeteoScreenState extends State<MeteoScreen> {
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
                 ),
-                borderRadius: BorderRadius.circular(20),
+                borderRadius: BorderRadius.circular(16),
               ),
               child: Column(
                 children: [
                   Text(
-                    _meteo!['ville'] ?? '',
-                    style: const TextStyle(color: Colors.white, fontSize: 18),
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    _meteo!['temperature'] ?? '--',
+                    _meteo!['ville'] ?? 'Ville inconnue',
                     style: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 48,
+                      fontSize: 24,
                       fontWeight: FontWeight.bold,
+                      color: Colors.white,
                     ),
                   ),
-                  if (_meteo!['description'] != null &&
-                      _meteo!['description'] != '')
-                    Text(
-                      _meteo!['description'],
-                      style: const TextStyle(
-                        color: Colors.white70,
-                        fontSize: 16,
+                  const SizedBox(height: 16),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Text(
+                        '${_meteo!['temperature'] ?? 0}°C',
+                        style: const TextStyle(
+                          fontSize: 48,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white,
+                        ),
                       ),
-                    ),
-                  if (_meteo!['source'] == 'offline')
-                    Container(
-                      margin: const EdgeInsets.only(top: 12),
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 12,
-                        vertical: 6,
+                      const SizedBox(width: 16),
+                      Text(
+                        _meteo!['description'] ?? 'Description inconnue',
+                        style: const TextStyle(
+                          fontSize: 18,
+                          color: Colors.white,
+                        ),
                       ),
-                      decoration: BoxDecoration(
-                        color: Colors.white24,
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: const Text(
-                        'Mode hors-ligne',
-                        style: TextStyle(color: Colors.white, fontSize: 12),
-                      ),
-                    ),
+                    ],
+                  ),
+                  const SizedBox(height: 16),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                    children: [
+                      _buildWeatherInfo('Humidité', '${_meteo!['humidite'] ?? 0}%'),
+                      _buildWeatherInfo('Vent', '${_meteo!['vent'] ?? 0} km/h'),
+                      _buildWeatherInfo('Pression', '${_meteo!['pression'] ?? 0} hPa'),
+                    ],
+                  ),
                 ],
               ),
-            ),
-            const SizedBox(height: 16),
-
-            Row(
-              children: [
-                _meteoCard(
-                  Icons.water_drop,
-                  'Humidité',
-                  _meteo!['humidite'] ?? '--',
-                ),
-                const SizedBox(width: 12),
-                _meteoCard(Icons.air, 'Vent', _meteo!['vent'] ?? '--'),
-                const SizedBox(width: 12),
-                _meteoCard(
-                  Icons.umbrella,
-                  'Pluie',
-                  _meteo!['pluie_probable'] ?? '--',
-                ),
-              ],
             ),
           ],
         ],
@@ -169,36 +187,25 @@ class _MeteoScreenState extends State<MeteoScreen> {
     );
   }
 
-  Widget _meteoCard(IconData icon, String label, String value) {
-    return Expanded(
-      child: Container(
-        padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(14),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withAlpha(13),
-              blurRadius: 8,
-              offset: const Offset(0, 2),
-            ),
-          ],
+  Widget _buildWeatherInfo(String label, String value) {
+    return Column(
+      children: [
+        Text(
+          value,
+          style: const TextStyle(
+            fontSize: 16,
+            fontWeight: FontWeight.bold,
+            color: Colors.white,
+          ),
         ),
-        child: Column(
-          children: [
-            Icon(icon, color: Colors.blue.shade400, size: 28),
-            const SizedBox(height: 8),
-            Text(
-              value,
-              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
-            ),
-            Text(
-              label,
-              style: TextStyle(fontSize: 12, color: Colors.grey.shade600),
-            ),
-          ],
+        Text(
+          label,
+          style: TextStyle(
+            fontSize: 12,
+            color: Colors.white.withValues(alpha: 0.8),
+          ),
         ),
-      ),
+      ],
     );
   }
 }

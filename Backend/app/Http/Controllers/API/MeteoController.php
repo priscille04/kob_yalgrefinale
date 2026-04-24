@@ -65,6 +65,67 @@ class MeteoController extends Controller
         }
     }
 
+    public function getByCoords(Request $request)
+    {
+        $request->validate([
+            'lat' => 'required|numeric|between:-90,90',
+            'lon' => 'required|numeric|between:-180,180',
+        ]);
+
+        $apiKey = config('services.openweather.key');
+        $lat = $request->lat;
+        $lon = $request->lon;
+
+        if (!$apiKey) {
+            return response()->json([
+                'message' => 'Clé API OpenWeather non configurée',
+                'ville' => 'Position actuelle',
+                'temperature' => '--',
+                'pluie_probable' => '--',
+                'vent' => '--',
+                'humidite' => '--',
+                'description' => 'Service météo indisponible',
+                'source' => 'offline',
+            ], 200);
+        }
+
+        try {
+            $response = Http::timeout(5)->get('https://api.openweathermap.org/data/2.5/weather', [
+                'lat' => $lat,
+                'lon' => $lon,
+                'appid' => $apiKey,
+                'units' => 'metric',
+                'lang' => 'fr',
+            ]);
+
+            if ($response->failed()) {
+                return response()->json(['message' => 'Position introuvable ou API indisponible'], 404);
+            }
+
+            $data = $response->json();
+
+            return response()->json([
+                'ville' => $data['name'] ?? 'Position actuelle',
+                'temperature' => round($data['main']['temp'] ?? 0, 1) . '°C',
+                'temperature_min' => round($data['main']['temp_min'] ?? 0, 1) . '°C',
+                'temperature_max' => round($data['main']['temp_max'] ?? 0, 1) . '°C',
+                'humidite' => ($data['main']['humidity'] ?? 0) . '%',
+                'vent' => round($data['wind']['speed'] ?? 0, 1) . ' km/h',
+                'pression' => ($data['main']['pressure'] ?? 0) . ' hPa',
+                'pluie_probable' => isset($data['rain']) ? 'Oui' : 'Non',
+                'description' => $data['weather'][0]['description'] ?? '',
+                'icone' => $data['weather'][0]['icon'] ?? '',
+                'source' => 'openweather',
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => 'Erreur de connexion au service météo',
+                'ville' => 'Position actuelle',
+                'source' => 'error',
+            ], 503);
+        }
+    }
+
     public function previsions(Request $request)
     {
         $request->validate([

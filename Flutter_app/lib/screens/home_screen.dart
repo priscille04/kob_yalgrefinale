@@ -1,14 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/auth_provider.dart';
-import 'produits_screen.dart';
-import 'commandes_screen.dart';
-import 'meteo_screen.dart';
-import 'conseils_screen.dart';
-import 'annonces_screen.dart';
-import 'messages_screen.dart';
-import 'profile_screen.dart';
-import 'notifications_screen.dart';
+import 'producteur_screen_final.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -20,18 +13,14 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   int _currentIndex = 0;
 
-  final _pages = const [
-    ProduitsScreen(),
-    CommandesScreen(),
-    AnnoncesScreen(),
-    MeteoScreen(),
-    ConseilsScreen(),
-    MessagesScreen(),
-  ];
-
   @override
   Widget build(BuildContext context) {
     final auth = context.watch<AuthProvider>();
+
+    // Rediriger les producteurs vers leur écran dédié seulement s'ils sont connectés
+    if (auth.isAuthenticated && auth.role.toLowerCase() == 'producteur') {
+      return const ProducteurScreen();
+    }
 
     return Scaffold(
       appBar: AppBar(
@@ -41,19 +30,13 @@ class _HomeScreenState extends State<HomeScreen> {
         actions: [
           IconButton(
             icon: const Icon(Icons.notifications_outlined),
-            onPressed: () => Navigator.push(
-              context,
-              MaterialPageRoute(builder: (_) => const NotificationsScreen()),
-            ),
+            onPressed: () => Navigator.pushNamed(context, '/notifications'),
           ),
           PopupMenuButton<String>(
             icon: const Icon(Icons.account_circle),
             onSelected: (v) {
               if (v == 'profile') {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (_) => const ProfileScreen()),
-                );
+                Navigator.pushNamed(context, '/profile');
               } else if (v == 'logout') {
                 auth.logout();
                 Navigator.pushReplacementNamed(context, '/login');
@@ -107,10 +90,34 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
         ],
       ),
-      body: _pages[_currentIndex],
+      body: const Center(
+        child: Text('Bienvenue sur KOB-YALGRÉ'),
+      ),
       bottomNavigationBar: NavigationBar(
         selectedIndex: _currentIndex,
-        onDestinationSelected: (i) => setState(() => _currentIndex = i),
+        onDestinationSelected: (i) {
+          setState(() => _currentIndex = i);
+          switch (i) {
+            case 0:
+              Navigator.pushNamed(context, '/produits');
+              break;
+            case 1:
+              Navigator.pushNamed(context, '/commandes');
+              break;
+            case 2:
+              Navigator.pushNamed(context, '/annonces');
+              break;
+            case 3:
+              Navigator.pushNamed(context, '/meteo');
+              break;
+            case 4:
+              Navigator.pushNamed(context, '/conseils');
+              break;
+            case 5:
+              Navigator.pushNamed(context, '/messages');
+              break;
+          }
+        },
         indicatorColor: Colors.green.shade100,
         destinations: const [
           NavigationDestination(icon: Icon(Icons.store), label: 'Produits'),

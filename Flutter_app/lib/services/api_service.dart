@@ -1,17 +1,48 @@
-﻿import 'dart:convert';
+﻿import 'dart:async';
+import 'dart:convert';
 import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 
 class ApiService {
-  static String get _baseUrl {
-    if (kIsWeb) return 'http://localhost:8000/api';
-    if (Platform.isAndroid) return 'http://192.168.11.174:8000/api';
-    return 'http://localhost:8000/api';
+  // ==========================================
+  // CONFIGURATION IP DU BACKEND
+  // Modifier cette valeur selon votre environnement:
+  // - Emulator Android : 'http://10.0.2.2:8000/api'
+  // - Téléphone physique (même WiFi) : 'http://192.168.43.152:8000/api'
+  // - iOS Simulator : 'http://localhost:8000/api'
+  // ==========================================
+static const String _apiBaseUrl = 'http://localhost:8000/api';
+
+  static String get _baseUrl { 
+    if (kIsWeb) {
+      return 'http://localhost:8000/api';
+    }
+    // Utilise l'IP configurée ci-dessus
+    // Pour émulateur Android, remplacez par 'http://10.0.2.2:8000/api'
+    return _apiBaseUrl;
   }
 
   static String get _v1 => '$_baseUrl/v1';
+
+  // Test de connectivité au backend
+  static Future<String> testConnection() async {
+    try {
+      final response = await http
+          .get(Uri.parse('$_baseUrl/auth/login'))
+          .timeout(const Duration(seconds: 5));
+      return 'Connecté (status: ${response.statusCode})';
+    } catch (e) {
+      if (e is SocketException) {
+        return 'Erreur réseau: ${e.message}\nVérifiez que le téléphone et le PC sont sur le même WiFi.';
+      }
+      if (e is TimeoutException) {
+        return 'Timeout: le serveur ne répond pas.\nVérifiez que le serveur est démarré (php artisan serve --host=0.0.0.0)';
+      }
+      return 'Erreur: ${e.toString()}';
+    }
+  }
 
   static Future<String?> getToken() async {
     final prefs = await SharedPreferences.getInstance();
@@ -188,6 +219,19 @@ class ApiService {
     return null;
   }
 
+  static Future<Map<String, dynamic>?> getMeteoByCoords(
+      double latitude, double longitude) async {
+    final uri = Uri.parse(
+      '$_v1/meteo/coords',
+    ).replace(queryParameters: {
+      'lat': latitude.toString(),
+      'lon': longitude.toString(),
+    });
+    final response = await http.get(uri, headers: await _headers());
+    if (response.statusCode == 200) return jsonDecode(response.body);
+    return null;
+  }
+
   static Future<Map<String, dynamic>?> getPrevisions(String ville) async {
     final uri = Uri.parse(
       '$_v1/meteo/previsions',
@@ -316,14 +360,52 @@ class ApiService {
     return [];
   }
 
+  // PRODUITS - AJOUT
+  static Future<Map<String, dynamic>> addProduit({
+    required String nom,
+    required double prix,
+    required int quantite,
+    required int producteurId,
+    File? image,
+  }) async {
+    final uri = Uri.parse('$_v1/produits');
+
+    // Préparer la requête multipart
+    var request = http.MultipartRequest('POST', uri);
+
+    // Ajouter les champs
+    request.fields['producteur_id'] = producteurId.toString();
+    request.fields['nom'] = nom;
+    request.fields['prix'] = prix.toString();
+    request.fields['quantite'] = quantite.toString();
+
+    // Ajouter l'image si présente
+    if (image != null) {
+      request.files
+          .add(await http.MultipartFile.fromPath('image', image.path));
+    }
+
+    // Ajouter les headers avec token
+    final headers = await _headers();
+    request.headers.addAll(headers);
+
+    // Envoyer la requête
+    final response = await request.send();
+    final respStr = await response.stream.bytesToString();
+
+    if (response.statusCode >= 200 && response.statusCode < 300) {
+      return jsonDecode(respStr) as Map<String, dynamic>;
+    } else {
+      throw Exception("Erreur lors de l'ajout du produit : $respStr");
+    }
+  }
+
   // IMAGE URL
   static String imageUrl(String? path) {
     if (path == null || path.isEmpty) return '';
     final base = kIsWeb
         ? 'http://localhost:8000'
-        : (Platform.isAndroid
-              ? 'http://10.0.2.2:8000'
-              : 'http://localhost:8000');
+        : 'http://192.168.43.152:8000';
     return '$base/storage/$path';
   }
 
@@ -334,3 +416,4 @@ class ApiService {
     return body;
   }
 }
+

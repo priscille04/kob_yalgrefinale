@@ -4,18 +4,20 @@ import '../providers/auth_provider.dart';
 import '../services/api_service.dart';
 import 'chat_screen.dart';
 
-class ProduitDetailScreen extends StatelessWidget {
+class ProduitDetailScreen extends StatefulWidget {
   final Map<String, dynamic> produit;
   const ProduitDetailScreen({super.key, required this.produit});
 
   @override
+  State<ProduitDetailScreen> createState() => _ProduitDetailScreenState();
+}
+
+class _ProduitDetailScreenState extends State<ProduitDetailScreen> {
+  int _selectedTabIndex = 0; // 0: Description, 1: Commande
+
+  @override
   Widget build(BuildContext context) {
-    final prix =
-        (produit['prix'] is String
-                ? double.tryParse(produit['prix'])
-                : produit['prix'])
-            ?.toStringAsFixed(0) ??
-        '0';
+    final produit = widget.produit;
     final producteur =
         produit['producteur']?['utilisateur']?['nom'] ?? 'Inconnu';
     final producteurId = produit['producteur']?['id'];
@@ -28,130 +30,339 @@ class ProduitDetailScreen extends StatelessWidget {
         backgroundColor: Colors.green.shade600,
         foregroundColor: Colors.white,
       ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(20),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Container(
-              width: double.infinity,
-              height: 200,
-              decoration: BoxDecoration(
-                color: Colors.green.shade50,
-                borderRadius: BorderRadius.circular(16),
-              ),
-              child: imageUrl.isNotEmpty
-                  ? ClipRRect(
-                      borderRadius: BorderRadius.circular(16),
-                      child: Image.network(
-                        imageUrl,
-                        fit: BoxFit.cover,
-                        errorBuilder: (_, __, ___) => Icon(
-                          Icons.eco,
-                          size: 80,
-                          color: Colors.green.shade300,
+      body: Column(
+        children: [
+          // Tab buttons
+          Container(
+            color: Colors.grey.shade100,
+            child: Row(
+              children: [
+                Expanded(
+                  child: GestureDetector(
+                    onTap: () => setState(() => _selectedTabIndex = 0),
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(vertical: 12),
+                      decoration: BoxDecoration(
+                        border: Border(
+                          bottom: BorderSide(
+                            color: _selectedTabIndex == 0
+                                ? Colors.green.shade600
+                                : Colors.transparent,
+                            width: 3,
+                          ),
                         ),
                       ),
-                    )
-                  : Icon(Icons.eco, size: 80, color: Colors.green.shade300),
-            ),
-            const SizedBox(height: 20),
-
-            Text(
-              produit['nom'] ?? '',
-              style: Theme.of(
-                context,
-              ).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 8),
-
-            Row(
-              children: [
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 12,
-                    vertical: 6,
-                  ),
-                  decoration: BoxDecoration(
-                    color: Colors.green.shade600,
-                    borderRadius: BorderRadius.circular(20),
-                  ),
-                  child: Text(
-                    '$prix FCFA',
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontWeight: FontWeight.bold,
+                      child: Center(
+                        child: Text(
+                          'Description',
+                          style: TextStyle(
+                            fontWeight: _selectedTabIndex == 0
+                                ? FontWeight.bold
+                                : FontWeight.normal,
+                            color: _selectedTabIndex == 0
+                                ? Colors.green.shade600
+                                : Colors.grey,
+                          ),
+                        ),
+                      ),
                     ),
                   ),
                 ),
-                const SizedBox(width: 12),
-                Text(
-                  'Stock: ${produit['quantite'] ?? 0}',
-                  style: TextStyle(color: Colors.grey.shade600),
+                Expanded(
+                  child: GestureDetector(
+                    onTap: () => setState(() => _selectedTabIndex = 1),
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(vertical: 12),
+                      decoration: BoxDecoration(
+                        border: Border(
+                          bottom: BorderSide(
+                            color: _selectedTabIndex == 1
+                                ? Colors.green.shade600
+                                : Colors.transparent,
+                            width: 3,
+                          ),
+                        ),
+                      ),
+                      child: Center(
+                        child: Text(
+                          'Commande',
+                          style: TextStyle(
+                            fontWeight: _selectedTabIndex == 1
+                                ? FontWeight.bold
+                                : FontWeight.normal,
+                            color: _selectedTabIndex == 1
+                                ? Colors.green.shade600
+                                : Colors.grey,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
                 ),
               ],
             ),
-            const SizedBox(height: 16),
-
-            if (produit['description'] != null &&
-                produit['description'].toString().isNotEmpty) ...[
-              const Text(
-                'Description',
-                style: TextStyle(fontWeight: FontWeight.w600, fontSize: 16),
+          ),
+          // Content
+          Expanded(
+            child: _selectedTabIndex == 0
+                ? _buildDescriptionTab(produit, producteur, type, imageUrl)
+                : _buildOrderTab(produit),
+          ),
+          // Bottom action buttons
+          Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              border: Border(
+                top: BorderSide(color: Colors.grey.shade300),
               ),
-              const SizedBox(height: 4),
-              Text(
-                produit['description'],
-                style: TextStyle(color: Colors.grey.shade700),
-              ),
-              const SizedBox(height: 16),
-            ],
-
-            _infoRow(Icons.person, 'Producteur', producteur),
-            if (type.isNotEmpty) _infoRow(Icons.category, 'Type', type),
-            const SizedBox(height: 24),
-
-            SizedBox(
-              width: double.infinity,
-              height: 48,
-              child: ElevatedButton.icon(
-                onPressed: () => _showOrderDialog(context),
-                icon: const Icon(Icons.shopping_cart),
-                label: const Text('Commander', style: TextStyle(fontSize: 16)),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.green.shade600,
-                  foregroundColor: Colors.white,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                ),
-              ),
+              color: Colors.white,
             ),
-
-            const SizedBox(height: 12),
-
-            if (producteurId != null)
-              SizedBox(
-                width: double.infinity,
-                height: 48,
-                child: OutlinedButton.icon(
-                  onPressed: () => _contactProducteur(context, producteurId),
-                  icon: const Icon(Icons.message),
-                  label: const Text(
-                    'Contacter le producteur',
-                    style: TextStyle(fontSize: 16),
-                  ),
-                  style: OutlinedButton.styleFrom(
-                    foregroundColor: Colors.green.shade600,
-                    side: BorderSide(color: Colors.green.shade600),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                SizedBox(
+                  width: double.infinity,
+                  height: 48,
+                  child: ElevatedButton.icon(
+                    onPressed: () => _showOrderDialog(context),
+                    icon: const Icon(Icons.shopping_cart),
+                    label: const Text('Commander',
+                        style: TextStyle(fontSize: 16)),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.green.shade600,
+                      foregroundColor: Colors.white,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
                     ),
                   ),
                 ),
+                const SizedBox(height: 12),
+                if (producteurId != null)
+                  SizedBox(
+                    width: double.infinity,
+                    height: 48,
+                    child: OutlinedButton.icon(
+                      onPressed: () =>
+                          _contactProducteur(context, producteurId),
+                      icon: const Icon(Icons.message),
+                      label: const Text(
+                        'Contacter le producteur',
+                        style: TextStyle(fontSize: 16),
+                      ),
+                      style: OutlinedButton.styleFrom(
+                        foregroundColor: Colors.green.shade600,
+                        side: BorderSide(color: Colors.green.shade600),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                      ),
+                    ),
+                  ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildDescriptionTab(Map<String, dynamic> produit, String producteur,
+      String type, String imageUrl) {
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(20),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Container(
+            width: double.infinity,
+            height: 200,
+            decoration: BoxDecoration(
+              color: Colors.green.shade50,
+              borderRadius: BorderRadius.circular(16),
+            ),
+            child: imageUrl.isNotEmpty
+                ? ClipRRect(
+                    borderRadius: BorderRadius.circular(16),
+                    child: Image.network(
+                      imageUrl,
+                      fit: BoxFit.cover,
+                      errorBuilder: (_, _, _) => Icon(
+                        Icons.eco,
+                        size: 80,
+                        color: Colors.green.shade300,
+                      ),
+                    ),
+                  )
+                : Icon(Icons.eco, size: 80, color: Colors.green.shade300),
+          ),
+          const SizedBox(height: 20),
+          Text(
+            produit['nom'] ?? '',
+            style: Theme.of(context)
+                .textTheme
+                .headlineSmall
+                ?.copyWith(fontWeight: FontWeight.bold),
+          ),
+          const SizedBox(height: 8),
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 6,
+                ),
+                decoration: BoxDecoration(
+                  color: Colors.green.shade600,
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                child: Text(
+                  '${(produit['prix'] is String ? double.tryParse(produit['prix']) : produit['prix'])?.toStringAsFixed(0) ?? '0'} FCFA',
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
               ),
+              const SizedBox(width: 12),
+              Text(
+                'Stock: ${produit['quantite'] ?? 0}',
+                style: TextStyle(color: Colors.grey.shade600),
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          if (produit['description'] != null &&
+              produit['description'].toString().isNotEmpty) ...[
+            const Text(
+              'Description',
+              style: TextStyle(fontWeight: FontWeight.w600, fontSize: 16),
+            ),
+            const SizedBox(height: 4),
+            Text(
+              produit['description'],
+              style: TextStyle(color: Colors.grey.shade700),
+            ),
+            const SizedBox(height: 16),
           ],
+          _infoRow(Icons.person, 'Producteur', producteur),
+          if (type.isNotEmpty) _infoRow(Icons.category, 'Type', type),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildOrderTab(Map<String, dynamic> produit) {
+    final auth = context.read<AuthProvider>();
+    
+    // Check if user is a client
+    if (auth.role != 'client' || auth.clientId == null) {
+      return Center(
+        child: Padding(
+          padding: const EdgeInsets.all(20),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(
+                Icons.lock,
+                size: 64,
+                color: Colors.grey.shade400,
+              ),
+              const SizedBox(height: 16),
+              Text(
+                'Seuls les clients peuvent passer des commandes',
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontSize: 16,
+                  color: Colors.grey.shade600,
+                ),
+              ),
+            ],
+          ),
         ),
+      );
+    }
+
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(20),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: Colors.blue.shade50,
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: Colors.blue.shade200),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  'En attente',
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 16,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  'Confirmez votre commande pour ce produit',
+                  style: TextStyle(
+                    color: Colors.grey.shade700,
+                    fontSize: 14,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 24),
+          const Text(
+            'Détails de la commande',
+            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+          ),
+          const SizedBox(height: 12),
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              border: Border.all(color: Colors.grey.shade300),
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: Column(
+              children: [
+                _detailRow('Produit', produit['nom'] ?? ''),
+                const Divider(),
+                _detailRow(
+                  'Prix unitaire',
+                  '${(produit['prix'] is String ? double.tryParse(produit['prix']) : produit['prix'])?.toStringAsFixed(0) ?? '0'} FCFA',
+                ),
+                const Divider(),
+                _detailRow('Stock disponible', '${produit['quantite'] ?? 0}'),
+              ],
+            ),
+          ),
+          const SizedBox(height: 32),
+        ],
+      ),
+    );
+  }
+
+  Widget _detailRow(String label, String value) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 8),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text(
+            label,
+            style: const TextStyle(fontWeight: FontWeight.w500),
+          ),
+          Text(
+            value,
+            style: TextStyle(color: Colors.grey.shade700),
+          ),
+        ],
       ),
     );
   }
@@ -187,7 +398,7 @@ class ProduitDetailScreen extends StatelessWidget {
       final result = await ApiService.createConversation(
         clientId: auth.clientId!,
         producteurId: producteurId,
-        produitId: produit['id'],
+        produitId: widget.produit['id'],
       );
 
       if (!context.mounted) return;
@@ -199,7 +410,8 @@ class ProduitDetailScreen extends StatelessWidget {
           MaterialPageRoute(
             builder: (_) => ChatScreen(
               conversationId: conv['id'],
-              contactNom: produit['producteur']?['nom'] ?? 'Producteur',
+              contactNom:
+                  widget.produit['producteur']?['nom'] ?? 'Producteur',
             ),
           ),
         );
@@ -236,7 +448,7 @@ class ProduitDetailScreen extends StatelessWidget {
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Text('${produit['nom']}'),
+            Text('${widget.produit['nom']}'),
             const SizedBox(height: 12),
             TextField(
               controller: qteCtrl,
@@ -266,7 +478,7 @@ class ProduitDetailScreen extends StatelessWidget {
 
               final result = await ApiService.createCommande(
                 clientId: auth.clientId!,
-                produitId: produit['id'],
+                produitId: widget.produit['id'],
                 quantite: qte,
               );
 

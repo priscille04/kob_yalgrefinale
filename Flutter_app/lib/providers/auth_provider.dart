@@ -45,7 +45,8 @@ class AuthProvider extends ChangeNotifier {
       }
       return result['message'] ?? 'Erreur de connexion';
     } catch (e) {
-      return 'Impossible de se connecter au serveur';
+      debugPrint('LOGIN ERROR: $e');
+      return 'Erreur réseau: ${e.toString()}';
     }
   }
 
@@ -74,7 +75,8 @@ class AuthProvider extends ChangeNotifier {
       }
       return result['message'] ?? "Erreur lors de l'inscription";
     } catch (e) {
-      return 'Impossible de se connecter au serveur';
+      debugPrint('REGISTER ERROR: $e');
+      return 'Erreur réseau: ${e.toString()}';
     }
   }
 
