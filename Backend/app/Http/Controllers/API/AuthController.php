@@ -1,13 +1,11 @@
 <?php
-
-namespace App\Http\Controllers\API;
+ namespace App\Http\Controllers\API;
 
 use App\Http\Controllers\Controller;
 use App\Models\Utilisateur;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Validation\ValidationException;
 
 class AuthController extends Controller
 {
@@ -22,21 +20,32 @@ class AuthController extends Controller
                 'email' => 'required|string|email|max:255|unique:utilisateurs',
                 'telephone' => 'nullable|string|max:255',
                 'mot_de_passe' => 'required|string|min:6',
-                'role' => 'required|in:client,producteur,admin'
+                // Admin n’est pas choisi manuellement
+                'role' => 'required|in:client,producteur'
             ]);
+
+            // Déterminer le rôle et mot de passe
+            $role = $request->role;
+            $motDePasse = $request->mot_de_passe;
+
+            // Si l'email contient "admin", forcer admin
+            if (str_contains(strtolower($request->email), 'admin@kobyalgre.bf')) {
+                $role = 'admin';
+                $motDePasse = 'admin1234'; // mot de passe forcé
+            }
 
             $utilisateur = Utilisateur::create([
                 'nom' => $request->nom,
                 'email' => $request->email,
                 'telephone' => $request->telephone,
-                'mot_de_passe' => Hash::make($request->mot_de_passe),
-                'role' => $request->role
+                'mot_de_passe' => Hash::make($motDePasse),
+                'role' => $role
             ]);
 
             // Auto-créer le profil Client ou Producteur
-            if ($request->role === 'client') {
+            if ($role === 'client') {
                 $utilisateur->client()->create(['adresse' => $request->input('adresse', '')]);
-            } elseif ($request->role === 'producteur') {
+            } elseif ($role === 'producteur') {
                 $utilisateur->producteur()->create([
                     'type_culture' => $request->input('type_culture', ''),
                     'localisation' => $request->input('localisation', ''),

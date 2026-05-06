@@ -25,11 +25,36 @@ class AuthProvider extends ChangeNotifier {
   Future<void> _loadUser() async {
     final prefs = await SharedPreferences.getInstance();
     final userData = prefs.getString('user');
-    if (userData != null) {
-      _user = jsonDecode(userData);
+    final token = prefs.getString('token');
+
+    if (userData != null && token != null) {
+      try {
+        // Valider le token avec le backend
+        final me = await ApiService.getMe();
+        if (me != null) {
+          _user = me;
+          // Mettre à jour le cache local si le backend a des données plus récentes
+          await prefs.setString('user', jsonEncode(_user));
+        } else {
+          // Token invalide — déconnexion silencieuse
+          await _clearAuth(prefs);
+        }
+      } catch (e) {
+        debugPrint('TOKEN VALIDATION ERROR: $e');
+        // En cas d'erreur réseau au démarrage, on garde la session locale
+        // mais on marque l'utilisateur comme chargé
+        _user = jsonDecode(userData);
+      }
     }
+
     _loading = false;
     notifyListeners();
+  }
+
+  Future<void> _clearAuth(SharedPreferences prefs) async {
+    await prefs.remove('token');
+    await prefs.remove('user');
+    _user = null;
   }
 
   Future<String?> login(String email, String password) async {

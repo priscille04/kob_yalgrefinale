@@ -61,6 +61,7 @@ class _ProduitsScreenState extends State<ProduitsScreen> {
                   horizontal: 16,
                 ),
               ),
+              onChanged: (_) => setState(() {}),
               onSubmitted: (v) => _load(search: v),
             ),
           ),

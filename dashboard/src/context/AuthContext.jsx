@@ -9,9 +9,13 @@ export function AuthProvider({ children }) {
         return stored ? JSON.parse(stored) : null;
     });
 
+    const roles = ['admin', 'producteur']; // Rôles autorisés à se connecter
+
     const login = async (email, mot_de_passe) => {
         const { data } = await api.post('/auth/login', { email, mot_de_passe });
-        if (data.utilisateur.role !== 'admin') {
+        
+        if (!roles.includes(data.utilisateur.role)
+        ) {
             throw new Error('Accès réservé aux administrateurs');
         }
         localStorage.setItem('token', data.token);

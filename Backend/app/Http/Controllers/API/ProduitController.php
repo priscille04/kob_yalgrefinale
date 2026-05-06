@@ -11,7 +11,7 @@ class ProduitController extends Controller
 {
     public function index(Request $request)
     {
-        $query = Produit::with('producteur.utilisateur', 'typeProduit');
+        $query = Produit::with('producteur.utilisateur', 'typeproduit');
 
         if ($request->filled('search')) {
             $s = $request->search;
@@ -21,35 +21,20 @@ class ProduitController extends Controller
             });
         }
 
-        if ($request->filled('typeproduit_id')) {
-            $query->where('typeproduit_id', $request->typeproduit_id);
-        }
+        $query->orderBy(
+            $request->input('sort', 'created_at'),
+            $request->input('order', 'desc')
+        );
 
-        if ($request->filled('producteur_id')) {
-            $query->where('producteur_id', $request->producteur_id);
-        }
-
-        if ($request->filled('prix_min')) {
-            $query->where('prix', '>=', $request->prix_min);
-        }
-
-        if ($request->filled('prix_max')) {
-            $query->where('prix', '<=', $request->prix_max);
-        }
-
-        $sort = $request->input('sort', 'created_at');
-        $order = $request->input('order', 'desc');
-        $query->orderBy($sort, $order);
-
-        if ($request->has('all')) return response()->json($query->get());
-        return response()->json($query->paginate($request->input('per_page', 15)));
+        return $request->has('all')
+            ? response()->json($query->get())
+            : response()->json($query->paginate(15));
     }
 
     public function store(Request $request)
     {
         $request->validate([
-            'producteur_id' => 'required|exists:producteurs,id',
-            'typeproduit_id' => 'nullable|exists:typeproduits,id',
+            'typeproduit_id' => 'required|exists:typeproduits,id',
             'nom' => 'required|string|max:255',
             'description' => 'nullable|string',
             'image' => 'nullable|image|max:2048',
@@ -59,29 +44,27 @@ class ProduitController extends Controller
 
         $data = $request->except('image');
 
+        // producteur_id auto depuis l’utilisateur connecté
+        $data['producteur_id'] = $request->user()->id;
+
         if ($request->hasFile('image')) {
             $data['image'] = $request->file('image')->store('produits', 'public');
         }
 
         $produit = Produit::create($data);
-        return response()->json($produit->load('producteur', 'typeProduit'), 201);
-    }
 
-    public function show(Produit $produit)
-    {
-        return response()->json($produit->load('producteur.utilisateur', 'typeProduit', 'commandes'));
+        return response()->json($produit->load('producteur', 'typeproduit'), 201);
     }
 
     public function update(Request $request, Produit $produit)
     {
         $request->validate([
-            'producteur_id' => 'sometimes|required|exists:producteurs,id',
-            'typeproduit_id' => 'nullable|exists:typeproduits,id',
-            'nom' => 'sometimes|required|string|max:255',
+            'typeproduit_id' => 'required|exists:typeproduits,id',
+            'nom' => 'required|string|max:255',
             'description' => 'nullable|string',
             'image' => 'nullable|image|max:2048',
-            'quantite' => 'sometimes|required|integer|min:0',
-            'prix' => 'sometimes|required|numeric|min:0'
+            'quantite' => 'required|integer|min:0',
+            'prix' => 'required|numeric|min:0'
         ]);
 
         $data = $request->except('image');
@@ -94,12 +77,37 @@ class ProduitController extends Controller
         }
 
         $produit->update($data);
-        return response()->json($produit->load('producteur', 'typeProduit'));
+
+        return response()->json($produit->load('producteur', 'typeproduit'));
     }
 
     public function destroy(Produit $produit)
     {
         $produit->delete();
         return response()->json(null, 204);
+    }
+
+    public function getProducteurProduits(Request $request)
+    {
+        $query = Produit::with('producteur.utilisateur', 'typeproduit');
+
+        $query->where('producteur_id', auth()->user()->id);
+
+        if ($request->filled('search')) {
+            $s = $request->search;
+            $query->where(function ($q) use ($s) {
+                $q->where('nom', 'like', "%{$s}%")
+                    ->orWhere('description', 'like', "%{$s}%");
+            });
+        }
+
+        $query->orderBy(
+            $request->input('sort', 'created_at'),
+            $request->input('order', 'desc')
+        );
+
+        return $request->has('all')
+            ? response()->json($query->get())
+            : response()->json($query->paginate(15));
     }
 }

@@ -1,5 +1,4 @@
 <?php
-
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\API\AuthController;
@@ -29,6 +28,7 @@ Route::prefix('auth')->middleware('auth:sanctum')->group(function () {
     Route::get('/me', [AuthController::class, 'me']);
     Route::post('/logout', [AuthController::class, 'logout']);
     Route::post('/refresh', [AuthController::class, 'refreshToken']);
+    
 });
 
 // ─── Routes publiques (lecture seule) ─────────────
@@ -53,6 +53,7 @@ Route::prefix('v1')->group(function () {
 // ─── Routes authentifiées ─────────────────────────
 Route::prefix('v1')->middleware('auth:sanctum')->group(function () {
     // Produits (écriture — producteurs authentifiés)
+    Route::get('producteur-produits', [ProduitController::class, 'getProducteurProduits']);
     Route::post('produits', [ProduitController::class, 'store']);
     Route::put('produits/{produit}', [ProduitController::class, 'update']);
     Route::patch('produits/{produit}', [ProduitController::class, 'update']);
@@ -98,5 +99,7 @@ Route::prefix('v1')->middleware('auth:sanctum')->group(function () {
         Route::put('typeproduits/{typeproduit}', [TypeProduitController::class, 'update']);
         Route::patch('typeproduits/{typeproduit}', [TypeProduitController::class, 'update']);
         Route::delete('typeproduits/{typeproduit}', [TypeProduitController::class, 'destroy']);
+
+       
     });
 });

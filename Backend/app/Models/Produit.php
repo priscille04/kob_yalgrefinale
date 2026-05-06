@@ -2,10 +2,13 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 class Produit extends Model
 {
+    use HasFactory;
+
     protected $fillable = [
         'producteur_id',
         'typeproduit_id',
@@ -18,16 +21,16 @@ class Produit extends Model
 
     public function producteur()
     {
-        return $this->belongsTo(Producteur::class);
+        return $this->belongsTo(Producteur::class, 'producteur_id');
     }
 
-    public function typeProduit()
+    public function typeproduit()
     {
         return $this->belongsTo(TypeProduit::class, 'typeproduit_id');
     }
 
     public function commandes()
     {
-        return $this->hasMany(Commande::class);
+        return $this->hasMany(Commande::class, 'produit_id');
     }
 }

@@ -28,28 +28,35 @@ export default function Layout() {
     };
 
     return (
-        <div className="min-h-screen bg-gray-50 flex">
-            {/* Mobile overlay */}
-            {sidebarOpen && (
-                <div className="fixed inset-0 bg-black/40 z-40 lg:hidden" onClick={() => setSidebarOpen(false)} />
-            )}
+        <div className="min-h-screen flex bg-gradient-to-br from-slate-50 via-emerald-50 to-green-100">
 
-            {/* Sidebar */}
-            <aside className={`fixed lg:static inset-y-0 left-0 z-50 w-64 bg-white border-r border-gray-200 flex flex-col transition-transform lg:translate-x-0 ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}`}>
-                <div className="flex items-center gap-3 px-6 py-5 border-b border-gray-200">
-                    <div className="w-10 h-10 bg-green-600 rounded-xl flex items-center justify-center">
-                        <Leaf className="w-5 h-5 text-white" />
+            {/* SIDEBAR */}
+            <aside className={`fixed lg:static inset-y-0 left-0 z-50 w-72 bg-gradient-to-b from-green-800 via-emerald-700 to-green-600 text-white flex flex-col shadow-2xl transition-transform lg:translate-x-0 ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}`}>
+
+                {/* HEADER SIDEBAR */}
+                <div className="px-6 py-6 border-b border-white/10 bg-white/10 backdrop-blur-xl">
+                    <div className="flex items-center gap-3">
+                        <div className="w-11 h-11 bg-white/20 rounded-xl flex items-center justify-center shadow">
+                            <Leaf className="w-6 h-6 text-white" />
+                        </div>
+
+                        <div>
+                            <h1 className="text-lg font-bold tracking-wide">KOB YALGRÉ</h1>
+                            <p className="text-xs text-white/70">Plateforme agricole</p>
+                        </div>
+
+                        <button
+                            className="ml-auto lg:hidden text-white"
+                            onClick={() => setSidebarOpen(false)}
+                        >
+                            <X className="w-5 h-5" />
+                        </button>
                     </div>
-                    <div>
-                        <h1 className="text-lg font-bold text-gray-900 leading-tight">KOB-YALGRÉ</h1>
-                        <p className="text-xs text-gray-500">Administration</p>
-                    </div>
-                    <button className="ml-auto lg:hidden" onClick={() => setSidebarOpen(false)}>
-                        <X className="w-5 h-5 text-gray-500" />
-                    </button>
                 </div>
 
-                <nav className="flex-1 px-3 py-4 space-y-1">
+                {/* NAV */}
+                <nav className="flex-1 px-4 py-6 space-y-2 overflow-y-auto">
+
                     {navItems.map(({ to, icon: Icon, label }) => (
                         <NavLink
                             key={to}
@@ -57,9 +64,10 @@ export default function Layout() {
                             end={to === '/'}
                             onClick={() => setSidebarOpen(false)}
                             className={({ isActive }) =>
-                                `flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition ${isActive
-                                    ? 'bg-green-50 text-green-700'
-                                    : 'text-gray-600 hover:bg-gray-100'
+                                `flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all duration-200 ${
+                                    isActive
+                                        ? 'bg-white text-green-700 shadow-lg scale-[1.02]'
+                                        : 'text-white/80 hover:bg-white/10 hover:text-white'
                                 }`
                             }
                         >
@@ -69,21 +77,23 @@ export default function Layout() {
                     ))}
                 </nav>
 
-                <div className="p-4 border-t border-gray-200">
-                    <div className="flex items-center gap-3 mb-3">
-                        <div className="w-9 h-9 bg-green-100 rounded-full flex items-center justify-center">
-                            <span className="text-green-700 font-semibold text-sm">
-                                {user?.nom?.charAt(0)?.toUpperCase() || 'A'}
-                            </span>
+                {/* USER */}
+                <div className="p-5 border-t border-white/10 bg-white/5 backdrop-blur-xl">
+
+                    <div className="flex items-center gap-3 mb-4">
+                        <div className="w-10 h-10 bg-white text-green-700 rounded-full flex items-center justify-center font-bold shadow">
+                            {user?.nom?.charAt(0)?.toUpperCase() || 'A'}
                         </div>
-                        <div className="flex-1 min-w-0">
-                            <p className="text-sm font-medium text-gray-900 truncate">{user?.nom || 'Admin'}</p>
-                            <p className="text-xs text-gray-500 truncate">{user?.email}</p>
+
+                        <div className="min-w-0">
+                            <p className="text-sm font-semibold truncate">{user?.nom || 'Admin'}</p>
+                            <p className="text-xs text-white/70 truncate">{user?.email}</p>
                         </div>
                     </div>
+
                     <button
                         onClick={handleLogout}
-                        className="flex items-center gap-2 text-sm text-red-600 hover:text-red-700 transition"
+                        className="w-full flex items-center justify-center gap-2 bg-white text-green-700 py-2 rounded-xl font-medium hover:bg-gray-100 transition shadow"
                     >
                         <LogOut className="w-4 h-4" />
                         Déconnexion
@@ -91,17 +101,36 @@ export default function Layout() {
                 </div>
             </aside>
 
-            {/* Main */}
-            <div className="flex-1 flex flex-col min-w-0">
-                <header className="bg-white border-b border-gray-200 px-4 lg:px-8 py-4 flex items-center gap-4">
-                    <button className="lg:hidden" onClick={() => setSidebarOpen(true)}>
-                        <Menu className="w-6 h-6 text-gray-600" />
+            {/* MAIN */}
+            <div className="flex-1 flex flex-col">
+
+                {/* HEADER */}
+                <header className="bg-white/80 backdrop-blur-xl border-b border-green-100 px-6 py-5 flex items-center justify-between shadow-sm">
+
+                    <div>
+                        <h2 className="text-xl font-bold text-gray-800">
+                            KOB YALGRÉ votre plateforme d'E-agriculture au Burkina Faso
+                        </h2>
+                        <p className="text-sm italic text-green-600">
+                            “Moderniser l’agriculture pour un avenir prospère”
+                        </p>
+                    </div>
+
+                    <button
+                        className="lg:hidden bg-green-600 text-white p-2 rounded-lg shadow"
+                        onClick={() => setSidebarOpen(true)}
+                    >
+                        <Menu className="w-6 h-6" />
                     </button>
-                    <h2 className="text-lg font-semibold text-gray-900">e-Agriculture Burkina Faso</h2>
                 </header>
-                <main className="flex-1 p-4 lg:p-8 overflow-auto">
-                    <Outlet />
+
+                {/* CONTENT */}
+                <main className="flex-1 p-6">
+                    <div className="bg-white/60 backdrop-blur-xl rounded-2xl shadow-lg p-4 min-h-full">
+                        <Outlet />
+                    </div>
                 </main>
+
             </div>
         </div>
     );

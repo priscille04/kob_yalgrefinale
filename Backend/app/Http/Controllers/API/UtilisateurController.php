@@ -22,7 +22,7 @@ class UtilisateurController extends Controller
             'email' => 'required|string|email|max:255|unique:utilisateurs',
             'telephone' => 'nullable|string|max:255',
             'mot_de_passe' => 'required|string|min:8',
-            'role' => 'required|string|in:client,producteur,admin'
+            'role' => 'required|string|in:client,producteur'
         ]);
 
         $utilisateur = Utilisateur::create([

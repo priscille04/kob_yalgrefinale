@@ -43,20 +43,55 @@ class MyApp extends StatelessWidget {
                 : (auth.isAuthenticated
                       ? const HomeScreen()
                       : const LoginScreen()),
-            routes: {
-              '/login': (_) => const LoginScreen(),
-              '/register': (_) => const RegisterScreen(),
-              '/home': (_) => const HomeScreen(),
-              '/produits': (_) => const ProduitsScreen(),
-              '/commandes': (_) => const CommandesScreen(),
-              '/annonces': (_) => const AnnoncesScreen(),
-              '/meteo': (_) => const MeteoScreen(),
-              '/conseils': (_) => const ConseilsScreen(),
-              '/messages': (_) => const MessagesScreen(),
-              '/profile': (_) => const ProfileScreen(),
-              '/notifications': (_) => const NotificationsScreen(),
-              '/videos': (_) => const VideosScreen(),
-              '/ussd': (_) => const USSDScreen(),
+            onGenerateRoute: (settings) {
+              final isAuth = auth.isAuthenticated;
+              final route = settings.name;
+
+              // Routes publiques — accessibles sans auth
+              if (route == '/login' || route == '/register') {
+                return MaterialPageRoute(
+                  builder: (_) => route == '/login'
+                      ? const LoginScreen()
+                      : const RegisterScreen(),
+                  settings: settings,
+                );
+              }
+
+              // Routes protégées — redirection vers login si non auth
+              if (!isAuth) {
+                return MaterialPageRoute(
+                  builder: (_) => const LoginScreen(),
+                  settings: settings,
+                );
+              }
+
+              final routes = <String, WidgetBuilder>{
+                '/home': (_) => const HomeScreen(),
+                '/produits': (_) => const ProduitsScreen(),
+                '/commandes': (_) => const CommandesScreen(),
+                '/annonces': (_) => const AnnoncesScreen(),
+                '/meteo': (_) => const MeteoScreen(),
+                '/conseils': (_) => const ConseilsScreen(),
+                '/messages': (_) => const MessagesScreen(),
+                '/profile': (_) => const ProfileScreen(),
+                '/notifications': (_) => const NotificationsScreen(),
+                '/videos': (_) => const VideosScreen(),
+                '/ussd': (_) => const USSDScreen(),
+              };
+
+              final builder = routes[route];
+              if (builder != null) {
+                return MaterialPageRoute(
+                  builder: builder,
+                  settings: settings,
+                );
+              }
+
+              // Route inconnue — retour à l'accueil
+              return MaterialPageRoute(
+                builder: (_) => const HomeScreen(),
+                settings: settings,
+              );
             },
           );
         },

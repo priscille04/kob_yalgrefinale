@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import api from '../api/axios';
+import api from '../../api/axios';
 import { Search, Trash2, Loader2, Plus, X, Pencil } from 'lucide-react';
 
 export default function Utilisateurs() {

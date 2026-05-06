@@ -29,7 +29,9 @@ class DatabaseSeeder extends Seeder
                 'role' => 'admin',
             ]
         );
-
+            $this->call([
+    AdminSeeder::class,
+           ]);
         // Producteur 1
         $prod1 = Utilisateur::updateOrCreate(
             ['email' => 'producteur@test.bf'],

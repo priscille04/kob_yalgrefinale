@@ -1,6 +1,6 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { useAuth } from '../context/AuthContext';
+import { useNavigate, Link } from 'react-router-dom';
+import { useAuth } from "../../context/AuthContext";
 import { Leaf, Loader2 } from 'lucide-react';
 
 export default function Login() {
@@ -8,16 +8,32 @@ export default function Login() {
     const [password, setPassword] = useState('');
     const [error, setError] = useState('');
     const [loading, setLoading] = useState(false);
-    const { login } = useAuth();
+
+    const { login } = useAuth(); 
+   
+
     const navigate = useNavigate();
 
     const handleSubmit = async (e) => {
         e.preventDefault();
         setError('');
         setLoading(true);
+
         try {
-            await login(email, password);
-            navigate('/');
+            const data = await login(email, password); 
+
+            const role = data.utilisateur.role; 
+            
+
+            if (role === "producteur") {
+                navigate("/dashboard-producteur");
+            } else if (role === "admin") {
+                navigate("/admin/dashboard"); 
+                
+            } else {
+                setError("Veuillez ");
+            }
+
         } catch (err) {
             setError(err.response?.data?.message || err.message || 'Erreur de connexion');
         } finally {
@@ -54,6 +70,7 @@ export default function Login() {
                             placeholder="admin@kobyalgre.bf"
                         />
                     </div>
+
                     <div>
                         <label className="block text-sm font-medium text-gray-700 mb-1">Mot de passe</label>
                         <input
@@ -65,6 +82,7 @@ export default function Login() {
                             placeholder="••••••••"
                         />
                     </div>
+
                     <button
                         type="submit"
                         disabled={loading}
@@ -74,6 +92,10 @@ export default function Login() {
                         Se connecter
                     </button>
                 </form>
+
+                <p className="text-sm text-gray-600 mt-4 text-center">
+                    Pas de compte ? <Link to="/register" className="text-green-600 hover:underline">S’inscrire</Link>
+                </p>
             </div>
         </div>
     );

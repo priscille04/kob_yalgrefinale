@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import api from '../api/axios';
+import api from '../../api/axios';
 import { Search, Trash2, Edit, Loader2, Plus, X, Check } from 'lucide-react';
 
 export default function Annonces() {
