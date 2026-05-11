@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+
 import '../providers/auth_provider.dart';
 import '../services/api_service.dart';
 
@@ -24,10 +25,12 @@ class _CommandesScreenState extends State<CommandesScreen> {
   Future<void> _load() async {
     setState(() => _loading = true);
     final auth = context.read<AuthProvider>();
+
     final data = await ApiService.getCommandes(
       clientId: auth.role == 'client' ? auth.clientId : null,
       statut: _filterStatut,
     );
+
     if (!mounted) return;
     setState(() {
       _commandes = data;
@@ -56,6 +59,8 @@ class _CommandesScreenState extends State<CommandesScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final auth = context.watch<AuthProvider>();
+
     return Column(
       children: [
         SingleChildScrollView(
@@ -77,115 +82,157 @@ class _CommandesScreenState extends State<CommandesScreen> {
           child: _loading
               ? const Center(child: CircularProgressIndicator())
               : _commandes.isEmpty
-              ? const Center(
-                  child: Text(
-                    'Aucune commande',
-                    style: TextStyle(color: Colors.grey),
-                  ),
-                )
-              : RefreshIndicator(
-                  onRefresh: _load,
-                  child: ListView.builder(
-                    padding: const EdgeInsets.symmetric(horizontal: 12),
-                    itemCount: _commandes.length,
-                    itemBuilder: (_, i) {
-                      final c = _commandes[i];
-                      final statut = c['statut'] ?? 'en_attente';
-                      final total =
-                          (c['total'] is String
+                  ? const Center(
+                      child: Text(
+                        'Aucune commande',
+                        style: TextStyle(color: Colors.grey),
+                      ),
+                    )
+                  : RefreshIndicator(
+                      onRefresh: _load,
+                      child: ListView.builder(
+                        padding: const EdgeInsets.symmetric(horizontal: 12),
+                        itemCount: _commandes.length,
+                        itemBuilder: (_, i) {
+                          final c = _commandes[i];
+                          final statut = c['statut'] ?? 'en_attente';
+
+                          final total = (c['total'] is String
                                   ? double.tryParse(c['total'])
                                   : c['total'])
-                              ?.toStringAsFixed(0) ??
-                          '0';
-                      final produitNom =
-                          c['produit']?['nom'] ?? 'Produit #${c['produit_id']}';
-                      final clientNom =
-                          c['client']?['utilisateur']?['nom'] ?? '';
+                              ?.toStringAsFixed(0)
+                              .toString();
 
-                      return Card(
-                        margin: const EdgeInsets.only(bottom: 8),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        child: Padding(
-                          padding: const EdgeInsets.all(14),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Row(
-                                mainAxisAlignment:
-                                    MainAxisAlignment.spaceBetween,
+                          final produitNom =
+                              c['produit']?['nom'] ?? 'Produit #${c['produit_id']}';
+                          final clientNom =
+                              c['client']?['utilisateur']?['nom'] ?? '';
+
+                          final isClient = auth.role == 'client';
+                          final canAnnuler = isClient && statut == 'en_attente';
+
+                          return Card(
+                            margin: const EdgeInsets.only(bottom: 8),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            child: Padding(
+                              padding: const EdgeInsets.all(14),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
+                                  Row(
+                                    mainAxisAlignment:
+                                        MainAxisAlignment.spaceBetween,
+                                    children: [
+                                      Text(
+                                        '#${c['id']}',
+                                        style: const TextStyle(
+                                          fontWeight: FontWeight.bold,
+                                          fontSize: 16,
+                                        ),
+                                      ),
+                                      Container(
+                                        padding: const EdgeInsets.symmetric(
+                                          horizontal: 10,
+                                          vertical: 4,
+                                        ),
+                                        decoration: BoxDecoration(
+                                          color: _statutColor(statut)
+                                              .withAlpha(30),
+                                          borderRadius: BorderRadius.circular(12),
+                                        ),
+                                        child: Text(
+                                          statut,
+                                          style: TextStyle(
+                                            color: _statutColor(statut),
+                                            fontSize: 12,
+                                            fontWeight: FontWeight.w600,
+                                          ),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                  const SizedBox(height: 8),
                                   Text(
-                                    '#${c['id']}',
+                                    produitNom,
                                     style: const TextStyle(
-                                      fontWeight: FontWeight.bold,
-                                      fontSize: 16,
+                                      fontWeight: FontWeight.w500,
                                     ),
                                   ),
-                                  Container(
-                                    padding: const EdgeInsets.symmetric(
-                                      horizontal: 10,
-                                      vertical: 4,
-                                    ),
-                                    decoration: BoxDecoration(
-                                      color: _statutColor(statut).withAlpha(30),
-                                      borderRadius: BorderRadius.circular(12),
-                                    ),
-                                    child: Text(
-                                      statut,
+                                  if (clientNom.isNotEmpty)
+                                    Text(
+                                      'Client: $clientNom',
                                       style: TextStyle(
-                                        color: _statutColor(statut),
-                                        fontSize: 12,
-                                        fontWeight: FontWeight.w600,
+                                        fontSize: 13,
+                                        color: Colors.grey.shade600,
                                       ),
                                     ),
+                                  const SizedBox(height: 4),
+                                  Row(
+                                    mainAxisAlignment:
+                                        MainAxisAlignment.spaceBetween,
+                                    children: [
+                                      Text(
+                                        'Qté: ${c['quantite']}',
+                                        style: TextStyle(
+                                          color: Colors.grey.shade600,
+                                        ),
+                                      ),
+                                      Text(
+                                        '${total ?? '0'} FCFA',
+                                        style: TextStyle(
+                                          fontWeight: FontWeight.bold,
+                                          color: Colors.green.shade700,
+                                          fontSize: 15,
+                                        ),
+                                      ),
+                                    ],
                                   ),
+
+                                  if (canAnnuler) ...[
+                                    const SizedBox(height: 12),
+                                    OutlinedButton.icon(
+                                      style: OutlinedButton.styleFrom(
+                                        foregroundColor: Colors.red.shade700,
+                                        side: BorderSide(
+                                          color: Colors.red.shade300,
+                                        ),
+                                      ),
+                                      onPressed: () async {
+                                        final id = c['id'] as int;
+                                        final res =
+                                            await ApiService.updateCommandeStatut(
+                                          id,
+                                          'annulee',
+                                        );
+
+                                        ScaffoldMessenger.of(context)
+                                            .showSnackBar(
+                                          SnackBar(
+                                            content: Text(
+                                              res['_success'] == true
+                                                  ? 'Commande annulée'
+                                                  : res['message'] ??
+                                                      'Erreur',
+                                            ),
+                                            backgroundColor: Colors.red.shade600,
+                                          ),
+                                        );
+
+                                        _load();
+                                      },
+                                      icon: const Icon(Icons.cancel_outlined),
+                                      label: const Text('Annuler'),
+                                    ),
+                                  ],
                                 ],
                               ),
-                              const SizedBox(height: 8),
-                              Text(
-                                produitNom,
-                                style: const TextStyle(
-                                  fontWeight: FontWeight.w500,
-                                ),
-                              ),
-                              if (clientNom.isNotEmpty)
-                                Text(
-                                  'Client: $clientNom',
-                                  style: TextStyle(
-                                    fontSize: 13,
-                                    color: Colors.grey.shade600,
-                                  ),
-                                ),
-                              const SizedBox(height: 4),
-                              Row(
-                                mainAxisAlignment:
-                                    MainAxisAlignment.spaceBetween,
-                                children: [
-                                  Text(
-                                    'Qté: ${c['quantite']}',
-                                    style: TextStyle(
-                                      color: Colors.grey.shade600,
-                                    ),
-                                  ),
-                                  Text(
-                                    '$total FCFA',
-                                    style: TextStyle(
-                                      fontWeight: FontWeight.bold,
-                                      color: Colors.green.shade700,
-                                      fontSize: 15,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ],
-                          ),
-                        ),
-                      );
-                    },
-                  ),
-                ),
+                            ),
+                          );
+                        },
+                      ),
+                    ),
         ),
       ],
     );
@@ -207,3 +254,4 @@ class _CommandesScreenState extends State<CommandesScreen> {
     );
   }
 }
+

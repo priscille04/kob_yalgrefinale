@@ -22,7 +22,7 @@ export default function Dashboard() {
                 api.get('/v1/utilisateurs?all=true'),
                 api.get('/v1/produits?all=true'),
                 api.get('/v1/commandes?all=true'),
-                api.get('/v1/producteurs?all=true'),
+               
             ]);
 
             const allOrders = orders.data.data || orders.data || [];
@@ -84,6 +84,12 @@ export default function Dashboard() {
         { label: 'Utilisateurs', value: stats.totalUsers, icon: Users, color: 'bg-blue-500' },
         { label: 'Produits', value: stats.totalProducts, icon: Package, color: 'bg-green-500' },
         { label: 'Commandes', value: stats.totalOrders, icon: ShoppingCart, color: 'bg-orange-500' },
+        { label: 'Producteurs', value: stats.totalProducers, icon: Store, color: 'bg-teal-500' },
+        {            label: 'Boutiques',
+            value: stats.totalBoutiques,
+            icon: Megaphone,
+            color: 'bg-yellow-500'
+        },
         {
             label: 'Revenus',
             value: stats.totalRevenue.toLocaleString('fr-FR') + ' F',

@@ -50,9 +50,11 @@ export default function ProduitsProducteur() {
       console.log("ID PRODUCTEUR :", myId);
       console.log("TOUS LES PRODUITS :", allProduits);
 
-      //  FILTRAGE CORRECT
-      const mine = allProduits.filter(p => Number(p.producteur_id) === myId);
-      const others = allProduits.filter(p => Number(p.producteur_id) !== myId);
+      //  FILTRAGE : ProduitController renvoie producteur_id = id user connecté (auth)
+      //  donc on compare avec user.id (et non user.producteur_id)
+      const mine = allProduits.filter(p => Number(p.producteur_id) === Number(user?.id));
+      const others = allProduits.filter(p => Number(p.producteur_id) !== Number(user?.id));
+
 
       console.log("MES PRODUITS :", mine);
       console.log("MARCHÉ :", others);

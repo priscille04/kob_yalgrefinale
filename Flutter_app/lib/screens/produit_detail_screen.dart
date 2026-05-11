@@ -124,10 +124,17 @@ class _ProduitDetailScreenState extends State<ProduitDetailScreen> {
                   width: double.infinity,
                   height: 48,
                   child: ElevatedButton.icon(
-                    onPressed: () => _showOrderDialog(context),
+                    onPressed: () async {
+                      await _showOrderDialog(context);
+                      if (!context.mounted) return;
+                      if (context.read<AuthProvider>().role.toLowerCase() == 'client') {
+                        Navigator.pushNamed(context, '/commandes');
+                      }
+                    },
                     icon: const Icon(Icons.shopping_cart),
                     label: const Text('Commander',
                         style: TextStyle(fontSize: 16)),
+
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Colors.green.shade600,
                       foregroundColor: Colors.white,
@@ -430,9 +437,10 @@ class _ProduitDetailScreenState extends State<ProduitDetailScreen> {
     }
   }
 
-  void _showOrderDialog(BuildContext context) {
+  Future<void> _showOrderDialog(BuildContext context) async {
     final auth = context.read<AuthProvider>();
     if (auth.role != 'client' || auth.clientId == null) {
+
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Seuls les clients peuvent commander')),
       );

@@ -1,5 +1,6 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
+
 import api from '../../api/axios';
 
 export default function Register() {
@@ -8,7 +9,8 @@ export default function Register() {
     email: '',
     telephone: '',
     mot_de_passe: '',
-    role: ''
+    role: '',
+    code_boutique: '' // ✅ AJOUT
   });
 
   const [showPassword, setShowPassword] = useState(false);
@@ -19,12 +21,28 @@ export default function Register() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
+
+    if (!form.role) {
+      setError("Veuillez choisir un rôle");
+      return;
+    }
+
+    // ✅ SI PRODUCTEUR → vérifier code boutique
+    if (form.role === "producteur" && !form.code_boutique) {
+      setError("Veuillez entrer le code de la boutique");
+      return;
+    }
+
     setLoading(true);
+
     try {
       await api.post('/auth/register', form);
       navigate('/login');
     } catch (err) {
-      setError(err.response?.data?.message || 'Erreur lors de l’inscription');
+      setError(
+        err.response?.data?.message ||
+        "Erreur lors de l’inscription"
+      );
     } finally {
       setLoading(false);
     }
@@ -32,8 +50,9 @@ export default function Register() {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-green-100 to-green-300">
+
       <div className="w-full max-w-lg bg-white rounded-2xl shadow-2xl p-8">
-        
+
         <h2 className="text-3xl font-bold text-center text-green-700 mb-6">
           Créer un compte
         </h2>
@@ -51,7 +70,7 @@ export default function Register() {
             value={form.nom}
             onChange={e => setForm({ ...form, nom: e.target.value })}
             required
-            className="w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+            className="w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-green-500 outline-none"
           />
 
           {/* Email */}
@@ -61,7 +80,7 @@ export default function Register() {
             value={form.email}
             onChange={e => setForm({ ...form, email: e.target.value })}
             required
-            className="w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+            className="w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-green-500 outline-none"
           />
 
           {/* Téléphone */}
@@ -71,10 +90,10 @@ export default function Register() {
             value={form.telephone}
             onChange={e => setForm({ ...form, telephone: e.target.value })}
             required
-            className="w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+            className="w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-green-500 outline-none"
           />
 
-          {/* Mot de passe avec bouton */}
+          {/* Mot de passe */}
           <div className="relative">
             <input
               type={showPassword ? "text" : "password"}
@@ -82,37 +101,49 @@ export default function Register() {
               value={form.mot_de_passe}
               onChange={e => setForm({ ...form, mot_de_passe: e.target.value })}
               required
-              className="w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+              className="w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-green-500 outline-none"
             />
 
             <span
               onClick={() => setShowPassword(!showPassword)}
-              className="absolute right-3 top-3 cursor-pointer text-gray-500"
+              className="absolute right-3 top-3 cursor-pointer text-sm text-gray-500"
             >
-              {showPassword ? "visible" : " "}
+              {showPassword ? "Masquer" : "Afficher"}
             </span>
           </div>
 
-          {/* Role - uniquement client ou producteur */}
+          {/* Role */}
           <select
             value={form.role}
             onChange={e => setForm({ ...form, role: e.target.value })}
             required
-            className="w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+            className="w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-green-500 outline-none"
           >
             <option value="">Je suis...</option>
-            <option value="client">client</option>
-            <option value="producteur">producteur</option>
+            <option value="client">Client</option>
+            <option value="producteur">Producteur</option>
           </select>
+
+          {/* CODE BOUTIQUE (UNIQUEMENT PRODUCTEUR) */}
+          {form.role === "producteur" && (
+            <input
+              type="text"
+              placeholder="Code boutique"
+              value={form.code_boutique}
+              onChange={e => setForm({ ...form, code_boutique: e.target.value })}
+              className="w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-green-500 outline-none"
+            />
+          )}
 
           {/* Bouton */}
           <button
             type="submit"
             disabled={loading}
-            className="w-full bg-green-600 hover:bg-green-700 transition duration-300 text-white py-3 rounded-lg font-semibold text-lg shadow-md"
+            className="w-full bg-green-600 hover:bg-green-700 text-white py-3 rounded-lg font-semibold text-lg shadow-md transition"
           >
-            {loading ? 'Création...' : 'S’inscrire'}
+            {loading ? "Création..." : "S’inscrire"}
           </button>
+
         </form>
       </div>
     </div>

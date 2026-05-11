@@ -4,6 +4,7 @@ namespace App\Http\Controllers\API;
 
 use App\Http\Controllers\Controller;
 use App\Models\Produit;
+use App\Models\Boutique;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 

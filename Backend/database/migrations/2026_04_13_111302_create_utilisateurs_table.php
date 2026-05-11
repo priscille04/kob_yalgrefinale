@@ -22,6 +22,7 @@ return new class extends Migration
     $table->string('mot_de_passe');
     $table->string('role')->default('client'); // client, producteur, admin
     $table->timestamps();
+    $table->foreignId('boutique_id')->nullable()->constrained()->nullOnDelete();
 });
     }
 

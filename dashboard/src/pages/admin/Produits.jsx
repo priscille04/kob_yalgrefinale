@@ -32,6 +32,7 @@ export default function Produits() {
                 api.get('/v1/produits?all=true'),
                 api.get('/v1/typeproduits?all=true'),
                 api.get('/v1/producteurs?all=true')
+
             ]);
 
             setProduits(prodRes.data || []);

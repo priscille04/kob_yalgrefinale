@@ -46,8 +46,17 @@ class _RegisterScreenState extends State<RegisterScreen> {
         _error = err;
       });
     } else {
-      Navigator.pushReplacementNamed(context, '/home');
+      final role = context.read<AuthProvider>().role.toLowerCase();
+      // Rediriger directement vers l'interface du rôle
+      if (role == 'client') {
+        Navigator.pushReplacementNamed(context, '/home');
+      } else if (role == 'producteur') {
+        Navigator.pushReplacementNamed(context, '/home');
+      } else {
+        Navigator.pushReplacementNamed(context, '/home');
+      }
     }
+
   }
 
   @override

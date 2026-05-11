@@ -9,6 +9,8 @@ class Utilisateur extends Model
 {
     use HasApiTokens;
 
+    protected $table = 'utilisateurs';
+
     protected $fillable = [
         'nom',
         'email',
@@ -29,15 +31,5 @@ class Utilisateur extends Model
     public function producteur()
     {
         return $this->hasOne(Producteur::class);
-    }
-
-    public function localisations()
-    {
-        return $this->hasMany(Localisation::class);
-    }
-
-    public function notifications()
-    {
-        return $this->hasMany(Notification::class);
     }
 }

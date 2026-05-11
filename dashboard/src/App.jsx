@@ -12,9 +12,21 @@ import Annonces from './pages/admin/Annonces';
 import TypeProduits from './pages/admin/TypeProduits';
 import Notifications from './pages/admin/Notifications';
 import Register from './pages/admin/Register';
+import Meteo from './components/Meteo';
+import Boutiques from "./pages/admin/Boutiques";
+
+function PublicLayout({ children }) {
+  return <>{children}</>;
+}
 import DashboardProducteur from './pages/producteur/DashboardProducteur';
 import ConseilsProducteur from './pages/producteur/ConseilsProducteur';
-import Meteo from './components/Meteo';
+import PublicHome from './pages/public/PublicHome';
+import MarchePublic from './pages/public/MarchePublic';
+import Contact from './pages/public/Contact';
+import APropos from './pages/public/APropos';
+
+
+
 
 export default function App() {
   return (
@@ -23,7 +35,27 @@ export default function App() {
         <Routes>
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
-          <Route path="/" element={<ProtectedRoute><Layout /></ProtectedRoute>}>
+          <Route path="/" element={<PublicHome />} />
+          <Route path="/marcher" element={<MarchePublic />} />
+          <Route
+            path="/contact"
+            element={
+              <PublicLayout>
+                <Contact />
+              </PublicLayout>
+            }
+          />
+          <Route
+            path="/apropos"
+            element={
+              <APropos />
+            }
+          />
+
+
+
+
+          <Route path="/admin" element={<ProtectedRoute><Layout /></ProtectedRoute>}>
             <Route index element={<Dashboard />} />
             <Route path="utilisateurs" element={<Utilisateurs />} />
             <Route path="produits" element={<Produits />} />
@@ -32,13 +64,15 @@ export default function App() {
             <Route path="annonces" element={<Annonces />} />
             <Route path="typeproduits" element={<TypeProduits />} />
             <Route path="notifications" element={<Notifications />} />
+            <Route path="boutiques" element={<Boutiques />} />
             <Route path="*" element={<div className="flex items-center justify-center h-64"><p className="text-gray-500 text-lg">Page introuvable (404)</p></div>} />
           </Route>
           <Route path="dashboard-producteur" element={<DashboardProducteur />} />
           <Route path="producteur/conseils" element={<ConseilsProducteur />} />
-          
+          <Route path="producteur/Commandes" element={<ConseilsProducteur />} />
         </Routes>
       </BrowserRouter>
     </AuthProvider>
   );
 }
+

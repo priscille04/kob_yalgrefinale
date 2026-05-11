@@ -8,27 +8,31 @@ export default function Utilisateurs() {
     const [search, setSearch] = useState('');
     const [showModal, setShowModal] = useState(false);
     const [editUser, setEditUser] = useState(null);
-    const [form, setForm] = useState({ nom: '', email: '', telephone: '', mot_de_passe: '', role: 'client' });
+    const [form, setForm] = useState({ nom: '', email: '', telephone: '', mot_de_passe: '', boutique: '', role: 'client' });
     const [saving, setSaving] = useState(false);
     const [error, setError] = useState('');
 
     useEffect(() => { loadUsers(); }, []);
 
-    const loadUsers = async () => {
-        try {
-            const { data } = await api.get('/v1/utilisateurs?all=true');
-            setUsers(data.data || data || []);
-        } catch (err) {
-            console.error(err);
-        } finally {
-            setLoading(false);
-        }
-    };
+ const loadUsers = async () => {
+    try {
+        const res = await api.get('/v1/utilisateurs?all=true');
 
+        console.log("UTILISATEURS API =", res.data);
+
+        setUsers(Array.isArray(res.data) ? res.data : []);
+    } catch (err) {
+        console.error(err);
+        setUsers([]);
+    } finally {
+        setLoading(false);
+    }
+};
     const handleDelete = async (id) => {
         if (!confirm('Supprimer cet utilisateur ?')) return;
         try {
             await api.delete(`/v1/utilisateurs/${id}`);
+            
             setUsers(users.filter((u) => u.id !== id));
         } catch (err) {
             alert('Erreur lors de la suppression');
@@ -37,14 +41,14 @@ export default function Utilisateurs() {
 
     const openCreate = () => {
         setEditUser(null);
-        setForm({ nom: '', email: '', telephone: '', mot_de_passe: '', role: 'client' });
+        setForm({ nom: '', email: '', telephone: '', mot_de_passe: '', boutique: '', role: 'client' });
         setError('');
         setShowModal(true);
     };
 
     const openEdit = (u) => {
         setEditUser(u);
-        setForm({ nom: u.nom || '', email: u.email || '', telephone: u.telephone || '', mot_de_passe: '', role: u.role || 'client' });
+        setForm({ nom: u.nom || '', email: u.email || '', telephone: u.telephone || '', mot_de_passe: '', boutique: '', role: u.role || 'client' });
         setError('');
         setShowModal(true);
     };
@@ -55,7 +59,7 @@ export default function Utilisateurs() {
         setSaving(true);
         try {
             if (editUser) {
-                const payload = { nom: form.nom, email: form.email, telephone: form.telephone, role: form.role };
+                const payload = { nom: form.nom, email: form.email, telephone: form.telephone, boutique: form.boutique, role: form.role };
                 if (form.mot_de_passe) payload.mot_de_passe = form.mot_de_passe;
                 await api.put(`/v1/utilisateurs/${editUser.id}`, payload);
             } else {
@@ -127,6 +131,7 @@ export default function Utilisateurs() {
                                 <th className="text-left py-3 px-4 font-medium text-gray-500">Nom</th>
                                 <th className="text-left py-3 px-4 font-medium text-gray-500">Email</th>
                                 <th className="text-left py-3 px-4 font-medium text-gray-500">Téléphone</th>
+                                <th className="text-left py-3 px-4 font-medium text-gray-500">Boutique</th>
                                 <th className="text-left py-3 px-4 font-medium text-gray-500">Rôle</th>
                                 <th className="text-right py-3 px-4 font-medium text-gray-500">Actions</th>
                             </tr>
@@ -137,11 +142,15 @@ export default function Utilisateurs() {
                                     <td className="py-3 px-4 text-gray-900">{u.id}</td>
                                     <td className="py-3 px-4 font-medium text-gray-900">{u.nom}</td>
                                     <td className="py-3 px-4 text-gray-600">{u.email}</td>
-                                    <td className="py-3 px-4 text-gray-600">{u.telephone || '—'}</td>
+                                    <td className="py-3 px-4 text-gray-600">{u.telephone || ''}</td>
+                                    <td className="py-3 px-4 text-gray-600">{u.boutique }</td>
                                     <td className="py-3 px-4">
                                         <span className={`inline-flex px-2 py-1 text-xs font-medium rounded-full ${roleBadge(u.role)}`}>
                                             {u.role}
                                         </span>
+                                    </td>
+                                    <td className="py-3 px-4 text-gray-600">
+                                        {u.boutique ? u.boutique.nom : '—'}
                                     </td>
                                     <td className="py-3 px-4 text-right flex justify-end gap-1">
                                         <button
@@ -183,6 +192,7 @@ export default function Utilisateurs() {
                             <input type="email" required placeholder="Email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm outline-none focus:ring-2 focus:ring-green-500" />
                             <input type="text" placeholder="Téléphone" value={form.telephone} onChange={(e) => setForm({ ...form, telephone: e.target.value })} className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm outline-none focus:ring-2 focus:ring-green-500" />
                             <input type="password" placeholder={editUser ? 'Nouveau mot de passe (laisser vide)' : 'Mot de passe'} required={!editUser} value={form.mot_de_passe} onChange={(e) => setForm({ ...form, mot_de_passe: e.target.value })} className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm outline-none focus:ring-2 focus:ring-green-500" />
+                           <input type="text" required placeholder="Boutique " value={form.boutique} onChange={(e) => setForm({ ...form, boutique: e.target.value })} className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm outline-none focus:ring-2 focus:ring-green-500" />
                             <select value={form.role} onChange={(e) => setForm({ ...form, role: e.target.value })} className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm outline-none focus:ring-2 focus:ring-green-500">
                                 <option value="client">Client</option>
                                 <option value="producteur">Producteur</option>

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/auth_provider.dart';
 import 'producteur_screen_final.dart';
+import 'client_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -17,10 +18,15 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget build(BuildContext context) {
     final auth = context.watch<AuthProvider>();
 
-    // Rediriger les producteurs vers leur écran dédié seulement s'ils sont connectés
+    // Rediriger selon le rôle vers l'écran dédié
     if (auth.isAuthenticated && auth.role.toLowerCase() == 'producteur') {
       return const ProducteurScreen();
     }
+
+    if (auth.isAuthenticated && auth.role.toLowerCase() == 'client') {
+      return const ClientScreen();
+    }
+
 
     return Scaffold(
       appBar: AppBar(

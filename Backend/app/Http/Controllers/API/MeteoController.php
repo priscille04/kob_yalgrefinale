@@ -15,7 +15,7 @@ class MeteoController extends Controller
         ]);
 
         $apiKey = config('services.openweather.key');
-        $ville = $request->ville;
+        $ville = trim($request->ville);
 
         if (!$apiKey) {
             return response()->json([
@@ -31,7 +31,12 @@ class MeteoController extends Controller
         }
 
         try {
+            info('[MeteoController@getByVille] ville_in='.$ville);
+            // 🔥 IMPORTANT : on utilise bien la ville ici
+
+
             $response = Http::timeout(5)->get('https://api.openweathermap.org/data/2.5/weather', [
+
                 'q' => $ville . ',BF',
                 'appid' => $apiKey,
                 'units' => 'metric',
@@ -39,13 +44,26 @@ class MeteoController extends Controller
             ]);
 
             if ($response->failed()) {
-                return response()->json(['message' => 'Ville introuvable ou API indisponible'], 404);
+                return response()->json([
+                    'message' => 'Ville introuvable ou API indisponible'
+                ], 404);
             }
 
             $data = $response->json();
 
+            // Normalisation province/région -> ville principale
+            $villeFinale = $data['name'] ?? $ville;
+            $mapping = [
+                'Kadiogo' => 'Ouagadougou',
+                'kadiogo' => 'Ouagadougou',
+                'KADIOGO' => 'Ouagadougou',
+            ];
+            if (isset($mapping[$villeFinale])) {
+                $villeFinale = $mapping[$villeFinale];
+            }
+
             return response()->json([
-                'ville' => $ville,
+                'ville' => $villeFinale,
                 'temperature' => round($data['main']['temp'] ?? 0, 1) . '°C',
                 'temperature_min' => round($data['main']['temp_min'] ?? 0, 1) . '°C',
                 'temperature_max' => round($data['main']['temp_max'] ?? 0, 1) . '°C',
@@ -56,6 +74,7 @@ class MeteoController extends Controller
                 'icone' => $data['weather'][0]['icon'] ?? '',
                 'source' => 'openweather',
             ]);
+
         } catch (\Exception $e) {
             return response()->json([
                 'message' => 'Erreur de connexion au service météo',
@@ -99,7 +118,9 @@ class MeteoController extends Controller
             ]);
 
             if ($response->failed()) {
-                return response()->json(['message' => 'Position introuvable ou API indisponible'], 404);
+                return response()->json([
+                    'message' => 'Position introuvable ou API indisponible'
+                ], 404);
             }
 
             $data = $response->json();
@@ -117,6 +138,7 @@ class MeteoController extends Controller
                 'icone' => $data['weather'][0]['icon'] ?? '',
                 'source' => 'openweather',
             ]);
+
         } catch (\Exception $e) {
             return response()->json([
                 'message' => 'Erreur de connexion au service météo',
@@ -133,7 +155,7 @@ class MeteoController extends Controller
         ]);
 
         $apiKey = config('services.openweather.key');
-        $ville = $request->ville;
+        $ville = trim($request->ville);
 
         if (!$apiKey) {
             return response()->json([
@@ -148,31 +170,38 @@ class MeteoController extends Controller
                 'appid' => $apiKey,
                 'units' => 'metric',
                 'lang' => 'fr',
-                'cnt' => 40,
             ]);
 
             if ($response->failed()) {
-                return response()->json(['message' => 'Ville introuvable'], 404);
+                return response()->json([
+                    'message' => 'Ville introuvable'
+                ], 404);
             }
 
             $data = $response->json();
-            $previsions = collect($data['list'] ?? [])->map(fn($item) => [
-                'date' => $item['dt_txt'],
-                'temperature' => round($item['main']['temp'], 1),
-                'humidite' => $item['main']['humidity'],
-                'vent' => round($item['wind']['speed'], 1),
-                'description' => $item['weather'][0]['description'] ?? '',
-                'icone' => $item['weather'][0]['icon'] ?? '',
-                'pluie' => $item['rain']['3h'] ?? 0,
-            ]);
+
+            $previsions = collect($data['list'] ?? [])->map(function ($item) {
+                return [
+                    'date' => $item['dt_txt'],
+                    'temperature' => round($item['main']['temp'], 1),
+                    'humidite' => $item['main']['humidity'],
+                    'vent' => round($item['wind']['speed'], 1),
+                    'description' => $item['weather'][0]['description'] ?? '',
+                    'icone' => $item['weather'][0]['icon'] ?? '',
+                    'pluie' => $item['rain']['3h'] ?? 0,
+                ];
+            });
 
             return response()->json([
                 'ville' => $ville,
                 'previsions' => $previsions,
                 'source' => 'openweather',
             ]);
+
         } catch (\Exception $e) {
-            return response()->json(['message' => 'Erreur de connexion'], 503);
+            return response()->json([
+                'message' => 'Erreur de connexion'
+            ], 503);
         }
     }
 }

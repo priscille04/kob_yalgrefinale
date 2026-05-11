@@ -5,47 +5,72 @@ namespace App\Http\Controllers\API;
 use App\Http\Controllers\Controller;
 use App\Models\Producteur;
 use Illuminate\Http\Request;
+use App\Models\Utilisateur;  
+use App\Models\Boutique;
 
 class ProducteurController extends Controller
 {
-    public function index(Request $request)
-    {
-        if ($request->has('all')) return response()->json(Producteur::with('utilisateur')->get());
-        return response()->json(Producteur::with('utilisateur')->paginate($request->input('per_page', 15)));
-    }
+    // LISTE
+       public function index(Request $request)
+{
+    $producteurs = Producteur::with('utilisateur', 'boutique')->get();
 
+    return response()->json($producteurs);
+}
+
+    // CREATE
     public function store(Request $request)
     {
         $request->validate([
-            'utilisateur_id' => 'required|exists:utilisateurs,id',
+            'producteur_id' => 'required|exists:utilisateurs,id',
             'type_culture' => 'nullable|string|max:255',
             'localisation' => 'nullable|string|max:255'
         ]);
 
-        $producteur = Producteur::create($request->only(['utilisateur_id', 'type_culture', 'localisation']));
-        return response()->json($producteur->load('utilisateur'), 201);
+        $producteur = Producteur::create([
+            'producteur_id' => $request->utilisateur_id,
+            'type_culture' => $request->type_culture,
+            'localisation' => $request->localisation
+        ]);
+
+        return response()->json(
+            $producteur->load('utilisateur')
+        , 201);
     }
 
+    // SHOW
     public function show(Producteur $producteur)
     {
-        return response()->json($producteur->load('utilisateur', 'produits', 'annonces'));
+        return response()->json(
+            $producteur->load('utilisateur', 'produits', 'annonces')
+        );
     }
 
+    // UPDATE
     public function update(Request $request, Producteur $producteur)
     {
         $request->validate([
-            'utilisateur_id' => 'sometimes|required|exists:utilisateurs,id',
+            'producteur_id' => 'sometimes|required|exists:utilisateurs,id',
             'type_culture' => 'nullable|string|max:255',
             'localisation' => 'nullable|string|max:255'
         ]);
 
-        $producteur->update($request->only(['utilisateur_id', 'type_culture', 'localisation']));
-        return response()->json($producteur->load('utilisateur'));
+        $producteur->update([
+            'producteur_id' => $request->utilisateur_id ?? $producteur->utilisateur_id,
+            'type_culture' => $request->type_culture,
+            'localisation' => $request->localisation
+        ]);
+
+        return response()->json(
+            $producteur->load('utilisateur')
+        );
     }
 
+    // DELETE
     public function destroy(Producteur $producteur)
     {
         $producteur->delete();
-        return response()->json(null, 204);
+        return response()->json(['message' => 'Supprimé avec succès']);
     }
+
 }

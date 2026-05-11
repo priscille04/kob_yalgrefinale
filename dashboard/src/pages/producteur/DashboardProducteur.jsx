@@ -1,6 +1,7 @@
 import { useState } from "react";
 import ProduitsProducteur from "./ProduitsProducteur";
 import Meteo from "../../components/Meteo";
+import ConseilsProducteur from "./ConseilsProducteur";
 import { useAuth } from "../../context/AuthContext";
 import { useNavigate } from "react-router-dom";
 
@@ -14,7 +15,6 @@ import {
   LogOut,
   User
 } from "lucide-react";
-import ConseilsProducteur from "./ConseilsProducteur";
 
 export default function DashboardProducteur() {
   const [section, setSection] = useState("produits");
@@ -42,9 +42,8 @@ export default function DashboardProducteur() {
       {/* SIDEBAR */}
       <div className="w-72 bg-white/80 backdrop-blur-xl border-r shadow-xl p-6 flex flex-col">
 
-        {/* LOGO */}
         <h1 className="text-2xl font-extrabold text-green-700 mb-8">
-          KOB YALGRE
+          KOB YALGRÉ
         </h1>
 
         {/* MENU */}
@@ -66,11 +65,9 @@ export default function DashboardProducteur() {
           ))}
         </nav>
 
-       {/* logo */}
-
+        {/* PROFILE */}
         <div className="border-t pt-4 space-y-3">
 
-          {/* PROFILE */}
           <div className="flex items-center gap-3 bg-green-50 p-3 rounded-xl">
             <div className="w-10 h-10 bg-green-600 text-white rounded-full flex items-center justify-center">
               <User size={18} />
@@ -81,7 +78,7 @@ export default function DashboardProducteur() {
                 {user?.nom || "Producteur"}
               </p>
               <p className="text-xs text-gray-500 truncate">
-                {user?.email}
+                {user?.email || "—"}
               </p>
             </div>
           </div>
@@ -104,7 +101,7 @@ export default function DashboardProducteur() {
         {/* HEADER */}
         <header className="bg-gradient-to-r from-green-600 to-emerald-500 text-white px-8 py-7 shadow-lg">
           <h2 className="text-3xl font-bold">
-            Espace Producteur 
+            Espace Producteur
           </h2>
           <p className="text-white/80">
             Gérez vos activités agricoles facilement
@@ -119,23 +116,21 @@ export default function DashboardProducteur() {
             {section === "produits" && <ProduitsProducteur />}
 
             {section === "commandes" && (
-              <h2 className="text-xl font-bold">Commandes (à venir)</h2>
+              <h2 className="text-xl font-bold">Commandes</h2>
             )}
 
             {section === "notifications" && (
               <h2 className="text-xl font-bold">Notifications</h2>
             )}
 
-            {section === "meteo" && <Meteo  />}
-            
+            {section === "meteo" && <Meteo />}
 
-            {section === "conseils" &&  <ConseilsProducteur /> }
-             
+            {section === "conseils" && <ConseilsProducteur />}
 
             {section === "ussd" && (
               <h2 className="text-xl font-bold">USSD *123#</h2>
             )}
-             
+
           </div>
 
         </main>

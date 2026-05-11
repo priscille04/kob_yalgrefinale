@@ -1,10 +1,8 @@
 import { NavLink, Outlet, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import {
-    LayoutDashboard, Users, ShoppingCart, Package,
-    Megaphone, BookOpen, LogOut, Leaf, Menu, X, Tags, Bell
-} from 'lucide-react';
+import { LayoutDashboard, Users, ShoppingCart, Package,Megaphone, BookOpen, LogOut, Leaf, Menu, X, Tags, Bell} from 'lucide-react';
 import { useState } from 'react';
+import { Store } from "lucide-react";
 
 const navItems = [
     { to: '/', icon: LayoutDashboard, label: 'Tableau de bord' },
@@ -15,6 +13,7 @@ const navItems = [
     { to: '/annonces', icon: Megaphone, label: 'Annonces' },
     { to: '/typeproduits', icon: Tags, label: 'Types de produits' },
     { to: '/notifications', icon: Bell, label: 'Notifications' },
+    { to: '/boutiques', icon: Store, label: 'Boutiques' }
 ];
 
 export default function Layout() {

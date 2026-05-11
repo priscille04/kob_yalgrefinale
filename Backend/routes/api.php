@@ -16,13 +16,17 @@ use App\Http\Controllers\API\ServiceMetheoController;
 use App\Http\Controllers\API\ConversationController;
 use App\Http\Controllers\API\MessageController;
 use App\Http\Controllers\API\MeteoController;
+use App\Http\Controllers\API\BoutiqueController;
 
+Route::prefix('v1')->group(function () {
+    Route::apiResource('boutiques', BoutiqueController::class);
+});
 // ─── Auth publiques ───────────────────────────────
 Route::prefix('auth')->group(function () {
     Route::post('/register', [AuthController::class, 'register']);
     Route::post('/login', [AuthController::class, 'login']);
 });
-
+Route::post('/auth/check-boutique', [AuthController::class, 'checkBoutique']);
 // ─── Auth protégées ───────────────────────────────
 Route::prefix('auth')->middleware('auth:sanctum')->group(function () {
     Route::get('/me', [AuthController::class, 'me']);
@@ -30,7 +34,8 @@ Route::prefix('auth')->middleware('auth:sanctum')->group(function () {
     Route::post('/refresh', [AuthController::class, 'refreshToken']);
     
 });
-
+Route::prefix('v1')->middleware('auth:sanctum')->group(function () {
+});
 // ─── Routes publiques (lecture seule) ─────────────
 Route::prefix('v1')->group(function () {
     Route::get('produits', [ProduitController::class, 'index']);
@@ -61,7 +66,6 @@ Route::prefix('v1')->middleware('auth:sanctum')->group(function () {
 
     // Commandes
     Route::apiResource('commandes', CommandeController::class);
-
     // Annonces (écriture)
     Route::post('annonces', [AnnonceController::class, 'store']);
     Route::put('annonces/{annonce}', [AnnonceController::class, 'update']);
@@ -99,7 +103,12 @@ Route::prefix('v1')->middleware('auth:sanctum')->group(function () {
         Route::put('typeproduits/{typeproduit}', [TypeProduitController::class, 'update']);
         Route::patch('typeproduits/{typeproduit}', [TypeProduitController::class, 'update']);
         Route::delete('typeproduits/{typeproduit}', [TypeProduitController::class, 'destroy']);
-
+        Route::post('/auth/register-producteur', [AuthController::class, 'registerProducteur']);
        
     });
+    //boutique CRUD
+    
+    Route::apiResource('boutiques', BoutiqueController::class);
+Route::get('/producteurs', [ProducteurController::class, 'index']);
+
 });

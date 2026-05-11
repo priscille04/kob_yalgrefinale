@@ -9,7 +9,8 @@ class Producteur extends Model
     protected $fillable = [
         'utilisateur_id',
         'type_culture',
-        'localisation'
+        'localisation',
+        'boutique_id'
     ];
 
     public function utilisateur()
@@ -17,13 +18,8 @@ class Producteur extends Model
         return $this->belongsTo(Utilisateur::class);
     }
 
-    public function produits()
+    public function boutique()
     {
-        return $this->hasMany(Produit::class);
-    }
-
-    public function annonces()
-    {
-        return $this->hasMany(Annonce::class);
+        return $this->belongsTo(Boutique::class);
     }
 }

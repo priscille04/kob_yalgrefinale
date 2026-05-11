@@ -1,8 +1,11 @@
 <?php
- namespace App\Http\Controllers\API;
+
+namespace App\Http\Controllers\API;
 
 use App\Http\Controllers\Controller;
 use App\Models\Utilisateur;
+use App\Models\Boutique;
+use App\Models\Producteur;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
@@ -20,18 +23,16 @@ class AuthController extends Controller
                 'email' => 'required|string|email|max:255|unique:utilisateurs',
                 'telephone' => 'nullable|string|max:255',
                 'mot_de_passe' => 'required|string|min:6',
-                // Admin n’est pas choisi manuellement
                 'role' => 'required|in:client,producteur'
             ]);
 
-            // Déterminer le rôle et mot de passe
             $role = $request->role;
             $motDePasse = $request->mot_de_passe;
 
-            // Si l'email contient "admin", forcer admin
+            // admin auto
             if (str_contains(strtolower($request->email), 'admin@kobyalgre.bf')) {
                 $role = 'admin';
-                $motDePasse = 'admin1234'; // mot de passe forcé
+                $motDePasse = 'admin1234';
             }
 
             $utilisateur = Utilisateur::create([
@@ -42,13 +43,18 @@ class AuthController extends Controller
                 'role' => $role
             ]);
 
-            // Auto-créer le profil Client ou Producteur
+            // CLIENT
             if ($role === 'client') {
-                $utilisateur->client()->create(['adresse' => $request->input('adresse', '')]);
-            } elseif ($role === 'producteur') {
+                $utilisateur->client()->create([
+                    'adresse' => $request->input('adresse', '')
+                ]);
+            }
+
+            // PRODUCTEUR (sans boutique ici)
+            if ($role === 'producteur') {
                 $utilisateur->producteur()->create([
                     'type_culture' => $request->input('type_culture', ''),
-                    'localisation' => $request->input('localisation', ''),
+                    'localisation' => $request->input('localisation', '')
                 ]);
             }
 
@@ -59,10 +65,12 @@ class AuthController extends Controller
                 'utilisateur' => $this->formatUser($utilisateur),
                 'token' => $utilisateur->createToken('auth_token')->plainTextToken
             ], 201);
+
         } catch (\Exception $e) {
-            Log::error('Registration error: ' . $e->getMessage());
+            Log::error($e->getMessage());
+
             return response()->json([
-                'message' => 'Erreur lors de l\'inscription: ' . $e->getMessage()
+                'message' => $e->getMessage()
             ], 500);
         }
     }
@@ -80,15 +88,11 @@ class AuthController extends Controller
         $utilisateur = Utilisateur::where('email', $request->email)->first();
 
         if (!$utilisateur) {
-            return response()->json([
-                'message' => 'Utilisateur introuvable'
-            ], 404);
+            return response()->json(['message' => 'Utilisateur introuvable'], 404);
         }
 
         if (!Hash::check($request->mot_de_passe, $utilisateur->mot_de_passe)) {
-            return response()->json([
-                'message' => 'Mot de passe incorrect'
-            ], 401);
+            return response()->json(['message' => 'Mot de passe incorrect'], 401);
         }
 
         $utilisateur->load('client', 'producteur');
@@ -101,51 +105,91 @@ class AuthController extends Controller
     }
 
     /**
-     * USER CONNECTÉ
+     * REGISTER PRODUCTEUR + BOUTIQUE (IMPORTANT)
      */
-    public function me(Request $request)
-    {
-        $utilisateur = $request->user();
-        $utilisateur->load('client', 'producteur');
-        return response()->json($this->formatUser($utilisateur));
-    }
+   public function registerProducteur(Request $request)
+{
+    $request->validate([
+        'nom' => 'required',
+        'email' => 'required|email|unique:utilisateurs',
+        'password' => 'required|min:6',
+        'code_boutique' => 'required'
+    ]);
 
-    /**
-     * LOGOUT
-     */
-    public function logout(Request $request)
-    {
-        $request->user()->currentAccessToken()->delete();
+    $boutique = Boutique::where('code_unique', $request->code_boutique)->first();
 
+    if (!$boutique) {
         return response()->json([
-            'message' => 'Déconnexion réussie'
-        ]);
+            'message' => 'Code boutique invalide'
+        ], 422);
     }
 
+    $user = Utilisateur::create([
+        'nom' => $request->nom,
+        'email' => $request->email,
+        'mot_de_passe' => Hash::make($request->password),
+        'role' => 'producteur'
+    ]);
+
+    $producteur = Producteur::create([
+        'utilisateur_id' => $user->id,
+        'boutique_id' => $boutique->id,
+        'type_culture' => '',
+        'localisation' => ''
+    ]);
+
+    return response()->json([
+        'user' => $user,
+        'producteur' => $producteur,
+        'boutique' => $boutique
+    ], 201);
+}
     /**
-     * REFRESH TOKEN
+     * CHECK BOUTIQUE
      */
-    public function refreshToken(Request $request)
-    {
-        $user = $request->user();
+   public function checkBoutique(Request $request)
+{
+    $request->validate([
+        'user_id' => 'required|exists:utilisateurs,id',
+        'code_boutique' => 'required'
+    ]);
 
-        $request->user()->currentAccessToken()->delete();
+    $user = Utilisateur::with('producteur.boutique')->find($request->user_id);
 
+    if (!$user || !$user->producteur) {
         return response()->json([
-            'message' => 'Token rafraîchi avec succès',
-            'token' => $user->createToken('auth_token')->plainTextToken
-        ]);
+            'message' => 'Utilisateur non producteur'
+        ], 400);
     }
 
+    if (!$user->producteur->boutique) {
+        return response()->json([
+            'message' => 'Aucune boutique liée à ce producteur'
+        ], 400);
+    }
+
+    if ($user->producteur->boutique->code_unique !== $request->code_boutique) {
+        return response()->json([
+            'message' => 'Code incorrect'
+        ], 403);
+    }
+
+    return response()->json([
+        'message' => 'OK'
+    ]);
+}
+
     /**
-     * Formater l'utilisateur avec client_id / producteur_id
+     * FORMAT USER
      */
     private function formatUser(Utilisateur $utilisateur): array
     {
         $data = $utilisateur->toArray();
         $data['client_id'] = $utilisateur->client?->id;
         $data['producteur_id'] = $utilisateur->producteur?->id;
+
         unset($data['client'], $data['producteur']);
+
         return $data;
     }
 }
