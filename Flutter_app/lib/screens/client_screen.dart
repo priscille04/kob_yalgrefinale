@@ -14,9 +14,8 @@ class _ClientScreenState extends State<ClientScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final auth = context.watch<AuthProvider>();
-
     return Scaffold(
+
       appBar: AppBar(
         title: const Text('Client'),
         backgroundColor: Colors.green.shade600,
@@ -27,8 +26,11 @@ class _ClientScreenState extends State<ClientScreen> {
             onPressed: () async {
               await context.read<AuthProvider>().logout();
               if (!mounted) return;
+              if (!context.mounted) return;
               Navigator.pushReplacementNamed(context, '/login');
+
             },
+
           ),
         ],
       ),

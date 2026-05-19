@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import api from '../../api/axios';
-import { Users, Package, ShoppingCart, TrendingUp, Loader2 } from 'lucide-react';
+import { Users, Package, ShoppingCart, TrendingUp, Loader2, Store, Megaphone } from 'lucide-react';
+
 import {
     BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip,
     ResponsiveContainer, PieChart, Pie, Cell
@@ -18,19 +19,26 @@ export default function Dashboard() {
 
     const loadStats = async () => {
         try {
-            const [users, products, orders, producers] = await Promise.all([
+            // NOTE: ajoutez les requêtes manquantes pour éviter l'erreur de chargement.
+            // - Boutiques
+            // - Producteurs
+            const [users, products, orders, producers, boutiques] = await Promise.all([
                 api.get('/v1/utilisateurs?all=true'),
                 api.get('/v1/produits?all=true'),
                 api.get('/v1/commandes?all=true'),
-               
+                api.get('/v1/producteurs?all=true'),
+                api.get('/v1/boutiques?all=true')
             ]);
+
 
             const allOrders = orders.data.data || orders.data || [];
             const allProducts = products.data.data || products.data || [];
             const allUsers = users.data.data || users.data || [];
             const allProducers = producers.data.data || producers.data || [];
+            const allBoutiques = boutiques.data.data || boutiques.data || [];
 
             const totalRevenue = allOrders.reduce(
+
                 (sum, o) => sum + parseFloat(o.total || 0), 0
             );
 
@@ -85,7 +93,9 @@ export default function Dashboard() {
         { label: 'Produits', value: stats.totalProducts, icon: Package, color: 'bg-green-500' },
         { label: 'Commandes', value: stats.totalOrders, icon: ShoppingCart, color: 'bg-orange-500' },
         { label: 'Producteurs', value: stats.totalProducers, icon: Store, color: 'bg-teal-500' },
-        {            label: 'Boutiques',
+        { label: 'Boutiques',
+
+
             value: stats.totalBoutiques,
             icon: Megaphone,
             color: 'bg-yellow-500'

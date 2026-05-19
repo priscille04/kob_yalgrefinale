@@ -23,9 +23,8 @@ export default function MarchePublic() {
   }, []);
 
   const handleCommander = () => {
-    navigate('/register', { state: { defaultRole: 'client' } });
-  };
-
+  window.location.href = "http://localhost:56090/";
+};
   return (
     <div className="min-h-screen flex flex-col bg-gradient-to-br from-green-50 via-emerald-50 to-green-100">
 

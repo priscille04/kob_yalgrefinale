@@ -13,9 +13,16 @@ export default function Commandes() {
 
     const loadCommandes = async () => {
         try {
+            console.log('[Producteur] Chargement commandes...');
             const res = await api.get('/v1/commandes?all=true');
-            setCommandes(res.data.data || res.data || []);
+            console.log('[Producteur] Response commandes:', res.data);
+            const data = res.data?.data ?? res.data ?? [];
+            setCommandes(Array.isArray(data) ? data : []);
+            console.log('[Producteur] Commandes count:', Array.isArray(data) ? data.length : 0);
+
         } catch (err) {
+            console.error('[Producteur] Erreur loadCommandes:', err?.response?.data ?? err);
+
             console.error(err);
         } finally {
             setLoading(false);

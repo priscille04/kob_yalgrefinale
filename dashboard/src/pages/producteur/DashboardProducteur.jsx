@@ -2,6 +2,8 @@ import { useState } from "react";
 import ProduitsProducteur from "./ProduitsProducteur";
 import Meteo from "../../components/Meteo";
 import ConseilsProducteur from "./ConseilsProducteur";
+import CommandesProducteur from "./CommandesProducteur";
+import NotificationsProducteur from "./NotificationsProducteur";
 import { useAuth } from "../../context/AuthContext";
 import { useNavigate } from "react-router-dom";
 
@@ -115,13 +117,12 @@ export default function DashboardProducteur() {
 
             {section === "produits" && <ProduitsProducteur />}
 
-            {section === "commandes" && (
-              <h2 className="text-xl font-bold">Commandes</h2>
-            )}
+            {section === "commandes" && <CommandesProducteur />}
 
-            {section === "notifications" && (
-              <h2 className="text-xl font-bold">Notifications</h2>
-            )}
+              
+
+            {section === "notifications" && <NotificationsProducteur />}
+            
 
             {section === "meteo" && <Meteo />}
 

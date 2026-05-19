@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import api from '../../api/axios';
+
 import { ShoppingCart, Loader2, CheckCircle, XCircle, Clock } from 'lucide-react';
 
 export default function Commandes() {
@@ -26,11 +27,17 @@ export default function Commandes() {
         try {
             await api.put(`/v1/commandes/${id}`, { statut });
             loadCommandes();
+
+            // Redirect vers l'espace Flutter du client (deep-link)
+            // Variante liste : `kobyalgre://client/commandes`
+            // Variante commande exacte : `kobyalgre://client/commandes?commandeId=${id}`
+            window.location.href = `kobyalgre://client/commandes?commandeId=${id}`;
         } catch (err) {
             console.error(err);
             alert("Erreur mise à jour statut");
         }
     };
+
 
     const getStatusStyle = (statut) => {
         switch (statut) {
@@ -43,6 +50,12 @@ export default function Commandes() {
             default:
                 return 'bg-yellow-100 text-yellow-700';
         }
+    };
+
+    const canModifier = (c) => {
+        // Pour le client : annuler/modifier seulement si en_attente
+        // (Le backend gère le stock et l'état.)
+        return c?.statut === 'en_attente';
     };
 
     if (loading) {
@@ -112,7 +125,9 @@ export default function Commandes() {
 
                                     <button
                                         onClick={() => updateStatus(c.id, 'en_cours')}
-                                        className="bg-blue-500 text-white px-2 py-1 rounded text-xs"
+                                        className="bg-blue-500 text-white px-2 py-1 rounded text-xs disabled:opacity-50"
+                                        disabled={!canModifier(c)}
+                                        title={!canModifier(c) ? 'Action client indisponible' : 'Mettre en cours'}
                                     >
                                         En cours
                                     </button>

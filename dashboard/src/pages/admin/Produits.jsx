@@ -53,6 +53,14 @@ export default function Produits() {
             // DEBUG IMPORTANT (à garder si bug)
             console.log("FORM DATA :", form);
 
+            // producteur_id est requis en base.
+            // On force un ID numérique (sinon ça part en null/NaN -> 1048 côté DB).
+            const producteurId = Number(form.producteur_id);
+            if (!producteurId || Number.isNaN(producteurId)) {
+                alert('Veuillez choisir un producteur valide.');
+                return;
+            }
+
             const payload = {
                 nom: form.nom,
                 prix: form.prix,
@@ -60,10 +68,10 @@ export default function Produits() {
                 description: form.description,
                 image: form.image,
 
-                // CORRECTION IMPORTANTE
                 typeproduit_id: form.typeproduit_id ? Number(form.typeproduit_id) : null,
-                producteur_id: form.producteur_id ? Number(form.producteur_id) : null,
+                producteur_id: producteurId,
             };
+
 
             if (editId) {
                 await api.put(`/v1/produits/${editId}`, payload);

@@ -50,10 +50,11 @@ export default function ProduitsProducteur() {
       console.log("ID PRODUCTEUR :", myId);
       console.log("TOUS LES PRODUITS :", allProduits);
 
-      //  FILTRAGE : ProduitController renvoie producteur_id = id user connecté (auth)
-      //  donc on compare avec user.id (et non user.producteur_id)
-      const mine = allProduits.filter(p => Number(p.producteur_id) === Number(user?.id));
-      const others = allProduits.filter(p => Number(p.producteur_id) !== Number(user?.id));
+      // FILTRAGE : produits.producteur_id référence la table `producteurs`.
+      // Donc on compare avec user.producteur_id (pas user.id).
+      const mine = allProduits.filter(p => Number(p.producteur_id) === Number(user?.producteur_id));
+      const others = allProduits.filter(p => Number(p.producteur_id) !== Number(user?.producteur_id));
+
 
 
       console.log("MES PRODUITS :", mine);

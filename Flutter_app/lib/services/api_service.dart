@@ -24,7 +24,7 @@ class ApiService {
     return _apiBaseUrl;
   }
 
-  static String get _v1 => '$_baseUrl/v1';
+
 
   // ─── Logs ───────────────────────────────────────
   static void _log(String method, String endpoint, {Object? error}) {
@@ -269,21 +269,31 @@ class ApiService {
   }) async {
     const ep = '/v1/commandes';
     _log('GET', ep);
+
     try {
       final params = <String, String>{};
       if (clientId != null) params['client_id'] = clientId.toString();
       if (statut != null) params['statut'] = statut;
       params['all'] = '1';
-      final uri = Uri.parse(
-        '$_baseUrl$ep',
-      ).replace(queryParameters: params.isNotEmpty ? params : null);
+
+      final uri = Uri.parse('$_baseUrl$ep')
+          .replace(queryParameters: params.isNotEmpty ? params : null);
+
       final response = await http.get(uri, headers: await _headers());
       if (response.statusCode == 200) {
         return jsonDecode(response.body) as List<dynamic>;
       }
+
+      // Important: on remonte le corps pour diagnostiquer (401/422/500, etc.)
       throw Exception('Erreur ${response.statusCode}: ${response.body}');
-    } catch (e) {
-      _handleNetworkError(e, 'GET', ep);
+  } catch (e) {
+      // Important: on ne cache plus l'erreur d'API (pas seulement SocketException)
+      _log('GET', ep, error: e);
+      if (e is Exception) {
+        rethrow;
+      }
+      // fallback: on transforme la cause en message lisible
+      throw Exception(e.toString());
     }
   }
 

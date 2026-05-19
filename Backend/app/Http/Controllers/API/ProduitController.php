@@ -45,8 +45,20 @@ class ProduitController extends Controller
 
         $data = $request->except('image');
 
-        // producteur_id auto depuis l’utilisateur connecté
-        $data['producteur_id'] = $request->user()->id;
+        // producteur_id auto depuis le producteur connecté
+        // (la table produits.producteur_id référence la table producteurs, pas utilisateurs)
+        // Cas admin : laisser producteur_id venir du front.
+        // Cas producteur connecté : forcer le producteur associé à l'utilisateur connecté.
+        // On ne déduit pas producteur_id depuis la relation utilisateur->producteur,
+        // car elle peut être absente pour certains rôles.
+        // La route admin permet à l’admin de choisir producteur_id côté front.
+        // La route producteur (auth) envoie aussi producteur_id.
+        $data['producteur_id'] = $request->input('producteur_id');
+
+
+
+
+
 
         if ($request->hasFile('image')) {
             $data['image'] = $request->file('image')->store('produits', 'public');

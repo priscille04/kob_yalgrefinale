@@ -20,6 +20,10 @@ function PublicLayout({ children }) {
 }
 import DashboardProducteur from './pages/producteur/DashboardProducteur';
 import ConseilsProducteur from './pages/producteur/ConseilsProducteur';
+import CommandesProducteur from './pages/producteur/CommandesProducteur';
+import NotificationsProducteur from './pages/producteur/NotificationsProducteur';
+import Conversation from './pages/Conversation';
+
 import PublicHome from './pages/public/PublicHome';
 import MarchePublic from './pages/public/MarchePublic';
 import Contact from './pages/public/Contact';
@@ -56,6 +60,7 @@ export default function App() {
 
 
           <Route path="/admin" element={<ProtectedRoute><Layout /></ProtectedRoute>}>
+
             <Route index element={<Dashboard />} />
             <Route path="utilisateurs" element={<Utilisateurs />} />
             <Route path="produits" element={<Produits />} />
@@ -69,7 +74,12 @@ export default function App() {
           </Route>
           <Route path="dashboard-producteur" element={<DashboardProducteur />} />
           <Route path="producteur/conseils" element={<ConseilsProducteur />} />
-          <Route path="producteur/Commandes" element={<ConseilsProducteur />} />
+          <Route path="dashboard-producteur" element={<CommandesProducteur />} />
+          <Route path="dashboard-producteur" element={<NotificationsProducteur />} />
+          <Route path="/conversation/:id" element={<Conversation />} />
+
+
+
         </Routes>
       </BrowserRouter>
     </AuthProvider>

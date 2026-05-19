@@ -8,10 +8,12 @@ class Notification extends Model
 {
     protected $fillable = [
         'utilisateur_id',
+        'conversation_id',
         'titre',
         'message',
         'lu'
     ];
+
 
     protected $casts = [
         'lu' => 'boolean'

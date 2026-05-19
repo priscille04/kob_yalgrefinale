@@ -21,16 +21,17 @@ class UtilisateurController extends Controller
         );
     }
 
-   public function store(Request $request)
-{
+    public function store(Request $request)
+    {
     $request->validate([
         'nom' => 'required|string|max:255',
         'email' => 'required|string|email|max:255|unique:utilisateurs',
         'telephone' => 'nullable|string|max:255',
         'mot_de_passe' => 'required|string|min:8',
-        'role' => 'required|string|in:client,producteur',
+        'role' => 'required|string|in:client,producteur,admin',
         'code_boutique' => 'nullable|string'
     ]);
+
 
     $boutique_id = null;
 

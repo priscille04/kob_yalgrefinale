@@ -5,15 +5,15 @@ import { useState } from 'react';
 import { Store } from "lucide-react";
 
 const navItems = [
-    { to: '/', icon: LayoutDashboard, label: 'Tableau de bord' },
-    { to: '/utilisateurs', icon: Users, label: 'Utilisateurs' },
-    { to: '/produits', icon: Package, label: 'Produits' },
-    { to: '/commandes', icon: ShoppingCart, label: 'Commandes' },
-    { to: '/conseils', icon: BookOpen, label: 'Conseils agricoles' },
-    { to: '/annonces', icon: Megaphone, label: 'Annonces' },
-    { to: '/typeproduits', icon: Tags, label: 'Types de produits' },
-    { to: '/notifications', icon: Bell, label: 'Notifications' },
-    { to: '/boutiques', icon: Store, label: 'Boutiques' }
+    { to: '/admin', icon: LayoutDashboard, label: 'Tableau de bord' },
+    { to: '/admin/utilisateurs', icon: Users, label: 'Utilisateurs' },
+    { to: '/admin/produits', icon: Package, label: 'Produits' },
+    { to: '/admin/commandes', icon: ShoppingCart, label: 'Commandes' },
+    { to: '/admin/conseils', icon: BookOpen, label: 'Conseils agricoles' },
+    { to: '/admin/annonces', icon: Megaphone, label: 'Annonces' },
+    { to: '/admin/typeproduits', icon: Tags, label: 'Types de produits' },
+    { to: '/admin/notifications', icon: Bell, label: 'Notifications' },
+    { to: '/admin/boutiques', icon: Store, label: 'Boutiques' }
 ];
 
 export default function Layout() {
