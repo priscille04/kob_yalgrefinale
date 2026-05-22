@@ -1,59 +1,182 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# Kob-Yalgré — Backend Laravel
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+API REST pour la plateforme e-agriculture Kob-Yalgré.
 
-## About Laravel
+## Stack
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+- **Laravel 12** + PHP 8.2
+- **Laravel Sanctum** — authentification par token Bearer
+- **SQLite** — base de données
+- **OpenWeather API** — météo
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+## Installation
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+```bash
+composer install
+cp .env.example .env
+php artisan key:generate
+php artisan migrate
+php artisan storage:link
+php artisan serve
+```
 
-## Learning Laravel
+Le serveur écoute sur `http://127.0.0.1:8000`.
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework. You can also check out [Laravel Learn](https://laravel.com/learn), where you will be guided through building a modern Laravel application.
+---
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+## Routes API
 
-## Laravel Sponsors
+Base : `/api`
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the [Laravel Partners program](https://partners.laravel.com).
+### Publiques
 
-### Premium Partners
+| Méthode | Route | Description |
+|---------|-------|-------------|
+| POST | `/auth/register` | Inscription client |
+| POST | `/auth/login` | Connexion |
+| POST | `/auth/check-boutique` | Vérification code boutique (producteur) |
+| GET | `/v1/produits` | Liste produits |
+| GET | `/v1/produits/{id}` | Détail produit |
+| GET | `/v1/conseils-agricoles` | Liste conseils |
+| GET | `/v1/annonces` | Liste annonces |
+| GET | `/v1/typeproduits` | Types de produits |
+| GET | `/v1/meteo?ville=X` | Météo par ville |
+| GET | `/v1/meteo/coords?lat=X&lon=Y` | Météo par coordonnées GPS |
+| GET | `/v1/meteo/previsions?ville=X` | Prévisions 5 jours |
 
-- **[Vehikl](https://vehikl.com)**
-- **[Tighten Co.](https://tighten.co)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel)**
-- **[DevSquad](https://devsquad.com/hire-laravel-developers)**
-- **[Redberry](https://redberry.international/laravel-development)**
-- **[Active Logic](https://activelogic.com)**
+### Authentifiées (Bearer token)
 
-## Contributing
+| Méthode | Route | Description |
+|---------|-------|-------------|
+| GET | `/auth/me` | Utilisateur courant |
+| POST | `/auth/logout` | Déconnexion |
+| POST | `/v1/produits` | Créer produit (producteur) |
+| PUT | `/v1/produits/{id}` | Modifier produit |
+| DELETE | `/v1/produits/{id}` | Supprimer produit |
+| GET | `/v1/producteur-produits` | Mes produits (producteur) |
+| POST | `/v1/commandes` | Créer commande |
+| GET | `/v1/commandes` | Mes commandes |
+| PUT | `/v1/commandes/{id}` | Modifier statut commande |
+| DELETE | `/v1/commandes/{id}` | Annuler commande |
+| GET/POST | `/v1/conversations` | Conversations messagerie |
+| GET/POST | `/v1/conversations/{id}/messages` | Messages d'une conversation |
+| POST | `/v1/conversations/{id}/lire` | Marquer messages comme lus |
+| GET | `/v1/notifications` | Mes notifications |
+| POST/PUT/DELETE | `/v1/annonces` | CRUD annonces |
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+### Admin uniquement
 
-## Code of Conduct
+| Méthode | Route | Description |
+|---------|-------|-------------|
+| GET/POST/PUT/DELETE | `/v1/utilisateurs` | CRUD utilisateurs |
+| GET/POST | `/v1/clients` | Gestion clients |
+| GET/POST | `/v1/producteurs` | Gestion producteurs |
+| POST | `/auth/register-producteur` | Créer compte producteur |
+| POST/PUT | `/v1/typeproduits` | Gestion types produits |
+| GET/PATCH | `/v1/boutiques` | Gestion boutiques |
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+---
 
-## Security Vulnerabilities
+## Structure des dossiers
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+```
+app/
+├── Http/Controllers/API/   ← 18 contrôleurs resource
+├── Models/                 ← Eloquent (Utilisateur, Produit, Commande…)
+└── Http/Middleware/        ← AdminMiddleware
 
-## License
+database/
+├── migrations/             ← 21 migrations
+└── database.sqlite
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+routes/
+├── api.php                 ← Routes API
+└── web.php
+```
+
+---
+
+## Statuts de commande
+
+```
+en_attente  →  confirmee  →  en_cours  →  livree
+            ↘  refusee (motif_refus requis)
+confirmee   →  annulee (stock restitué automatiquement)
+```
+
+La confirmation décrémente le stock. L'annulation le restitue.
+
+---
+
+## Logique boutique (producteurs)
+
+Chaque producteur appartient à une boutique identifiée par un `code_unique`.  
+À la connexion, le dashboard React effectue un second appel `POST /auth/check-boutique` avec `{ user_id, code_boutique }` pour valider l'appartenance avant d'autoriser l'accès.
+
+---
+
+## Variables d'environnement importantes
+
+```env
+APP_DEBUG=false            # toujours false en production
+DB_CONNECTION=sqlite
+MAIL_MAILER=smtp           # configurer pour les emails réels
+```
+
+---
+
+## Bugs connus — à corriger
+
+### CRITIQUE — `getProducteurProduits()` retourne 0 résultats
+
+**Fichier** : `app/Http/Controllers/API/ProduitController.php:107`
+
+```php
+// AVANT (bug) :
+$query->where('producteur_id', auth()->user()->id);
+
+// APRÈS (fix) :
+$query->where('producteur_id', auth()->user()->producteur->id);
+```
+
+`producteur_id` référence `producteurs.id`, pas `utilisateurs.id`. La confusion fait que le producteur connecté ne voit aucun de ses produits.
+
+---
+
+### CRITIQUE — Password admin hardcodé
+
+**Fichier** : `app/Http/Controllers/API/AuthController.php`
+
+```php
+// AVANT (bug) :
+$motDePasse = 'admin1234';
+
+// APRÈS (fix) :
+$motDePasse = Str::random(12);
+// → envoyer par email via Mail::to($email)->send(...)
+```
+
+---
+
+### MAJEUR — `boutique_id` absent du `$fillable`
+
+**Fichier** : `app/Models/Utilisateur.php`
+
+```php
+// AVANT :
+protected $fillable = ['nom', 'email', 'telephone', 'mot_de_passe', 'role'];
+
+// APRÈS :
+protected $fillable = ['nom', 'email', 'telephone', 'mot_de_passe', 'role', 'boutique_id'];
+```
+
+Sans ce correctif, l'assignation de boutique via le dashboard admin est silencieusement ignorée.
+
+---
+
+### MAJEUR — Aucun flux d'inscription producteur public
+
+La route `/auth/register-producteur` est protégée par le middleware `admin`.  
+Un producteur ne peut pas s'inscrire lui-même.
+
+**Fix** : Rendre la route publique ou ajouter une page d'inscription producteur avec vérification de code boutique.
