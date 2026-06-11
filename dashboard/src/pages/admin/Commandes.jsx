@@ -88,7 +88,7 @@ export default function Commandes() {
                             <th>Quantité</th>
                             <th>Total</th>
                             <th>Statut</th>
-                            <th>Actions</th>
+                            {/*<th>Actions</th>*/}
                         </tr>
                     </thead>
 
@@ -119,35 +119,9 @@ export default function Commandes() {
                                         {c.statut || 'en_attente'}
                                     </span>
                                 </td>
-
-                                {/* ACTIONS */}
-                                <td className="flex gap-2 p-2">
-
-                                    <button
-                                        onClick={() => updateStatus(c.id, 'en_cours')}
-                                        className="bg-blue-500 text-white px-2 py-1 rounded text-xs disabled:opacity-50"
-                                        disabled={!canModifier(c)}
-                                        title={!canModifier(c) ? 'Action client indisponible' : 'Mettre en cours'}
-                                    >
-                                        En cours
-                                    </button>
-
-                                    <button
-                                        onClick={() => updateStatus(c.id, 'livree')}
-                                        className="bg-green-600 text-white px-2 py-1 rounded text-xs"
-                                    >
-                                        Livrée
-                                    </button>
-
-                                    <button
-                                        onClick={() => updateStatus(c.id, 'annulee')}
-                                        className="bg-red-500 text-white px-2 py-1 rounded text-xs"
-                                    >
-                                        Annuler
-                                    </button>
-
-                                </td>
-
+                   
+                               
+                     
                             </tr>
                         ))}
 

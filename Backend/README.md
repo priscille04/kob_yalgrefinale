@@ -153,9 +153,10 @@ $motDePasse = 'admin1234';
 
 // APRÈS (fix) :
 $motDePasse = Str::random(12);
+
 // → envoyer par email via Mail::to($email)->send(...)
 ```
-
+envoi d'un otp pour admin
 ---
 
 ### MAJEUR — `boutique_id` absent du `$fillable`

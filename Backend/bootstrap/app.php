@@ -21,5 +21,19 @@ return Application::configure(basePath: dirname(__DIR__))
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
-        //
+        $exceptions->renderable(function (\Throwable $e, $request) {
+            if (! $request->expectsJson()) {
+                return;
+            }
+
+            $message = $e->getMessage() ?: 'Erreur interne du serveur';
+
+            if (! mb_check_encoding($message, 'UTF-8')) {
+                $message = @iconv('CP1252', 'UTF-8//IGNORE', $message) ?: 'Erreur interne du serveur';
+            }
+
+            return response()->json([
+                'message' => $message,
+            ], 500);
+        });
     })->create();

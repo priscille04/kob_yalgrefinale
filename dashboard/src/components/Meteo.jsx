@@ -18,11 +18,6 @@ export default function Meteo() {
 
     setLoading(true);
     setError("");
-
-    // TODO: récupérer la ville du producteur.
-    // Comme le user stocké dans AuthContext semble ne pas contenir directement la ville,
-    // on tente d'abord d'utiliser le champ `localisation` (présent côté backend Producteur).
-    // Si ce champ n'existe pas, on retombe sur la géolocalisation.
     const fallbackByGPS = () => {
       if (!navigator.geolocation) {
         setError("La géolocalisation n'est pas supportée");
@@ -56,10 +51,7 @@ export default function Meteo() {
     };
 
     try {
-      // IMPORTANT: le backend `formatUser()` supprime `producteur`/`client`.
-      // Donc `localStorage.user` ne contient pas la ville du producteur.
-      // On va donc faire une requête API pour récupérer la boutique + ville.
-
+     
       const storedUser = JSON.parse(localStorage.getItem("user") || "null");
       const producteurId = storedUser?.producteur_id;
 
@@ -68,11 +60,7 @@ export default function Meteo() {
         return;
       }
 
-      // On utilise l'endpoint existant : GET /api/v1/producteurs (admin seulement)
-      // mais il peut être accessible selon votre middleware.
-      // Alternative robuste: interroger directement la route météo backend /api/v1/meteo?ville=...
-
-      // Tentative 1: ville depuis la réponse /api/v1/producteurs (si accessible)
+     
       const token = localStorage.getItem("token");
       let city = "";
 
@@ -90,7 +78,7 @@ export default function Meteo() {
 
         city = p?.boutique?.ville || p?.boutique?.ville || p?.localisation || "";
       } catch (e) {
-        // ignoré -> on retombe sur GPS
+        
       }
 
       if (!city) {
@@ -98,21 +86,19 @@ export default function Meteo() {
         return;
       }
 
-      // Tentative 2 (recommandée): appeler la météo côté backend
-      // backend renvoie: { ville, temperature, pluie_probable, humidite, description, ... }
+      
       console.log("[Meteo] ville utilisée:", city);
       const res = await axios.get("/api/v1/meteo", {
         params: { ville: city },
       });
 
       console.log("[Meteo] response /api/v1/meteo (brut):", res.data);
-      // On affiche directement la ville normalisée renvoyée par le backend.
-      // (Le backend convertit par ex. province->ville principale.)
+    
       const villeLabel = String(res.data?.ville ?? city ?? "").trim();
 
 
       if (!res.data?.temperature || res.data?.temperature === '--') {
-        // fallback: si backend renvoie --/indisponible, on ré-essaie avec le GPS
+        
         fallbackByGPS();
         return;
       }

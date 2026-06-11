@@ -14,6 +14,7 @@ const navItems = [
     { to: '/admin/typeproduits', icon: Tags, label: 'Types de produits' },
     { to: '/admin/notifications', icon: Bell, label: 'Notifications' },
     { to: '/admin/boutiques', icon: Store, label: 'Boutiques' }
+    
 ];
 
 export default function Layout() {

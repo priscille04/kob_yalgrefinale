@@ -17,10 +17,12 @@ class TypeProduitController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'nom' => 'required|string|max:255|unique:typeproduits'
+            'nom' => 'required|string|max:255|unique:typeproduits',
+            'produits_json' => 'nullable|json'
         ]);
 
-        $typeProduit = TypeProduit::create($request->only(['nom']));
+        $payload = $request->only(['nom', 'produits_json']);
+        $typeProduit = TypeProduit::create($payload);
         return response()->json($typeProduit, 201);
     }
 
@@ -32,10 +34,11 @@ class TypeProduitController extends Controller
     public function update(Request $request, TypeProduit $typeProduit)
     {
         $request->validate([
-            'nom' => 'sometimes|required|string|max:255|unique:typeproduits,nom,' . $typeProduit->id
+            'nom' => 'sometimes|required|string|max:255|unique:typeproduits,nom,' . $typeProduit->id,
+            'produits_json' => 'nullable|json'
         ]);
 
-        $typeProduit->update($request->only(['nom']));
+        $typeProduit->update($request->only(['nom', 'produits_json']));
         return response()->json($typeProduit);
     }
 

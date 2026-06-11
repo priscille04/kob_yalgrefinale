@@ -10,7 +10,7 @@ export default function Register() {
     telephone: '',
     mot_de_passe: '',
     role: '',
-    code_boutique: '' // ✅ AJOUT
+    code_boutique: '' 
   });
 
   const [showPassword, setShowPassword] = useState(false);
@@ -27,7 +27,7 @@ export default function Register() {
       return;
     }
 
-    // ✅ SI PRODUCTEUR → vérifier code boutique
+    // SI PRODUCTEUR → vérifier code boutique
     if (form.role === "producteur" && !form.code_boutique) {
       setError("Veuillez entrer le code de la boutique");
       return;

@@ -23,7 +23,11 @@ public function run()
     DB::table('utilisateurs')->insert([
         'nom' => 'Administrateur',
         'email' => 'admin@kobyalgre.bf',
-        'mot_de_passe' => Hash::make('admin1234'),
+'mot_de_passe' => Hash::make(env('ADMIN_PASSWORD', 'admin1234')),
+
+
+
+
         'role' => 'admin',
         'created_at' => now(),
         'updated_at' => now(),

@@ -9,8 +9,14 @@ class TypeProduit extends Model
     protected $table = 'typeproduits';
 
     protected $fillable = [
-        'nom'
+        'nom',
+        'produits_json'
     ];
+
+    protected $casts = [
+        'produits_json' => 'array',
+    ];
+
 
     public function produits()
     {

@@ -16,8 +16,10 @@ class Produit extends Model
         'description',
         'image',
         'quantite',
-        'prix'
+        'prix',
+        'boutique_id'
     ];
+
 
     public function producteur()
     {
@@ -27,6 +29,11 @@ class Produit extends Model
     public function typeproduit()
     {
         return $this->belongsTo(TypeProduit::class, 'typeproduit_id');
+    }
+
+    public function boutique()
+    {
+        return $this->belongsTo(Boutique::class, 'boutique_id');
     }
 
     public function commandes()

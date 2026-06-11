@@ -1,26 +1,26 @@
-import { useEffect, useState } from "react";
-import api from "../../api/axios";
-import { PlayCircle, Loader2, Eye } from "lucide-react";
+import { useEffect, useState } from 'react';
+import api from '../../api/axios';
+import { Loader2 } from 'lucide-react';
 
 export default function ConseilsProducteur() {
 
-  const [videos, setVideos] = useState([]);
+  const [conseils, setConseils] = useState([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    loadVideos();
+    load();
   }, []);
 
-  const loadVideos = async () => {
+  const load = async () => {
     try {
-      setLoading(true);
+      const res = await api.get('/v1/conseils-agricoles?all=true');
 
-      const { data } = await api.get("/v1/conseils?all=true");
+      const data = Array.isArray(res.data) ? res.data : [];
 
-      setVideos(data || []);
+      setConseils(data);
 
     } catch (err) {
-      console.log("Erreur videos:", err);
+      console.log(err.response?.data || err.message);
     } finally {
       setLoading(false);
     }
@@ -35,69 +35,32 @@ export default function ConseilsProducteur() {
   }
 
   return (
-    <div className="p-4 space-y-6">
+    <div className="p-6 space-y-6">
 
-      <h1 className="text-2xl font-bold text-gray-800">
-        Conseils Agricoles
-      </h1>
+      <h1 className="text-2xl font-bold">🌿 Conseils agricoles</h1>
 
-      <div className="space-y-4">
+      {conseils.length === 0 ? (
+        <p className="text-gray-500">Aucun conseil disponible</p>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
 
-        {videos.length === 0 ? (
-          <p className="text-gray-500">Aucune vidéo disponible</p>
-        ) : (
-          videos.map((video) => (
-            <div key={video.id} className="bg-white rounded-xl shadow overflow-hidden">
+          {conseils.map((c) => (
+            <div key={c.id} className="bg-white p-4 rounded-xl shadow">
 
-              {/* IMAGE / PREVIEW */}
-              <div className="h-48 bg-gray-200 flex items-center justify-center">
-                <PlayCircle className="w-14 h-14 text-green-600" />
-              </div>
+              <h3 className="font-bold text-green-700">
+                {c.titre}
+              </h3>
 
-              {/* CONTENT */}
-              <div className="p-4 space-y-2">
-
-                <h2 className="font-bold text-lg">
-                  {video.titre}
-                </h2>
-
-                <p className="text-gray-600 text-sm">
-                  {video.description}
-                </p>
-
-                {/* INFO STYLE FLUTTER */}
-                <div className="flex justify-between text-sm text-gray-500 mt-2">
-
-                  <div className="flex items-center gap-1">
-                    ⏱ {video.duree || "10:00"}
-                  </div>
-
-                  <div className="flex items-center gap-1">
-                    <Eye size={14} />
-                    {video.vues || 0}
-                  </div>
-
-                </div>
-
-                {/* BUTTON PLAY */}
-                {video.lien && (
-                  <a
-                    href={video.lien}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="inline-block mt-3 text-green-600 font-medium"
-                  >
-                    ▶ Voir la vidéo
-                  </a>
-                )}
-
-              </div>
+              <p className="text-gray-600 mt-2">
+                {c.contenu}
+              </p>
 
             </div>
-          ))
-        )}
+          ))}
 
-      </div>
+        </div>
+      )}
+
     </div>
   );
 }

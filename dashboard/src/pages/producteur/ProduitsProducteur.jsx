@@ -42,13 +42,13 @@ export default function ProduitsProducteur() {
         api.get('/v1/produits'),
         api.get('/v1/typeproduits')
       ]);
-
       const allProduits = prodRes.data?.data || prodRes.data || [];
 
       //  DEBUG (REGARDE DANS LA CONSOLE)
       console.log("USER CONNECTÉ :", user);
       console.log("ID PRODUCTEUR :", myId);
       console.log("TOUS LES PRODUITS :", allProduits);
+      console.log("TYPES :", typeRes.data);
 
       // FILTRAGE : produits.producteur_id référence la table `producteurs`.
       // Donc on compare avec user.producteur_id (pas user.id).
@@ -82,7 +82,7 @@ export default function ProduitsProducteur() {
         quantite: Number(form.quantite),
         description: form.description,
         image: form.image,
-        typeproduit_id: Number(form.typeproduit_id),
+        typeproduit_id: form.typeproduit_id ? Number(form.typeproduit_id) : null,
         producteur_id: myId
       };
 
@@ -229,12 +229,11 @@ export default function ProduitsProducteur() {
                 value={form.typeproduit_id}
                 onChange={(e) => setForm({ ...form, typeproduit_id: e.target.value })}
               >
-                <option value="">Type</option>
-                {types.map(t => (
-                  <option key={t.id} value={t.id}>{t.nom}</option>
+                <option value="">Type de produit</option>
+                {types.map((type) => (
+                  <option key={type.id} value={type.id}>{type.nom}</option>
                 ))}
               </select>
-
             </div>
 
             <input className="border p-2 rounded w-full" placeholder="Image"

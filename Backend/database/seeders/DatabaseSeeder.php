@@ -25,13 +25,15 @@ class DatabaseSeeder extends Seeder
             [
                 'nom' => 'Administrateur',
                 'telephone' => '+22670000000',
-                'mot_de_passe' => Hash::make('admin123'),
+'mot_de_passe' => Hash::make(env('ADMIN_PASSWORD', 'admin1234')),
                 'role' => 'admin',
             ]
         );
-            $this->call([
-    AdminSeeder::class,
-           ]);
+
+        $this->call([
+            AdminSeeder::class,
+        ]);
+
         // Producteur 1
         $prod1 = Utilisateur::updateOrCreate(
             ['email' => 'producteur@test.bf'],
@@ -88,21 +90,22 @@ class DatabaseSeeder extends Seeder
 
         // Types de produits
         $types = [];
-        foreach (['Légumes', 'Fruits', 'Céréales', 'Tubercules', 'Épices'] as $nom) {
-            $types[] = TypeProduit::firstOrCreate(['nom' => $nom]);
+        foreach (['Légumes', 'Fruits', 'Céréales', 'Tubercules', 'Légumineuses'] as $nom) {
+            $types[$nom] = TypeProduit::firstOrCreate(['nom' => $nom]);
         }
 
         // Produits
         $produitsData = [
-            ['nom' => 'Tomates fraîches', 'description' => 'Tomates biologiques cultivées en plein champ', 'quantite' => 200, 'prix' => 500, 'producteur_id' => $producteur1->id, 'typeproduit_id' => $types[0]->id],
-            ['nom' => 'Oignons violets', 'description' => 'Oignons de qualité supérieure de Ouagadougou', 'quantite' => 150, 'prix' => 350, 'producteur_id' => $producteur1->id, 'typeproduit_id' => $types[0]->id],
-            ['nom' => 'Mangues Kent', 'description' => 'Mangues sucrées et juteuses', 'quantite' => 300, 'prix' => 750, 'producteur_id' => $producteur1->id, 'typeproduit_id' => $types[1]->id],
-            ['nom' => 'Maïs blanc', 'description' => 'Maïs de saison, séché et nettoyé', 'quantite' => 500, 'prix' => 250, 'producteur_id' => $producteur2->id, 'typeproduit_id' => $types[2]->id],
-            ['nom' => 'Mil', 'description' => 'Mil traditionnel du Burkina', 'quantite' => 400, 'prix' => 300, 'producteur_id' => $producteur2->id, 'typeproduit_id' => $types[2]->id],
-            ['nom' => 'Igname', 'description' => 'Ignames fraîches de Bobo-Dioulasso', 'quantite' => 100, 'prix' => 1200, 'producteur_id' => $producteur2->id, 'typeproduit_id' => $types[3]->id],
-            ['nom' => 'Piment frais', 'description' => 'Piment rouge très piquant', 'quantite' => 80, 'prix' => 600, 'producteur_id' => $producteur1->id, 'typeproduit_id' => $types[4]->id],
-            ['nom' => 'Sorgho rouge', 'description' => 'Sorgho pour dolo et tô', 'quantite' => 350, 'prix' => 275, 'producteur_id' => $producteur2->id, 'typeproduit_id' => $types[2]->id],
+            ['nom' => 'Tomates', 'description' => 'Tomates', 'quantite' => 200, 'prix' => 500, 'producteur_id' => $producteur1->id, 'typeproduit_id' => $types['Légumes']->id],
+            ['nom' => 'Oignons', 'description' => 'Oignons', 'quantite' => 150, 'prix' => 350, 'producteur_id' => $producteur1->id, 'typeproduit_id' => $types['Légumes']->id],
+            ['nom' => 'Mangues', 'description' => 'Mangues', 'quantite' => 300, 'prix' => 750, 'producteur_id' => $producteur1->id, 'typeproduit_id' => $types['Fruits']->id],
+            ['nom' => 'Maïs', 'description' => 'Maïs', 'quantite' => 500, 'prix' => 250, 'producteur_id' => $producteur2->id, 'typeproduit_id' => $types['Céréales']->id],
+            ['nom' => 'Mil', 'description' => 'Mil', 'quantite' => 400, 'prix' => 300, 'producteur_id' => $producteur2->id, 'typeproduit_id' => $types['Céréales']->id],
+            ['nom' => 'Igname', 'description' => 'Igname', 'quantite' => 100, 'prix' => 1200, 'producteur_id' => $producteur2->id, 'typeproduit_id' => $types['Tubercules']->id],
+            ['nom' => 'Piment', 'description' => 'Piment', 'quantite' => 80, 'prix' => 600, 'producteur_id' => $producteur1->id, 'typeproduit_id' => $types['Légumes']->id],
+            ['nom' => 'Sorgho', 'description' => 'Sorgho', 'quantite' => 350, 'prix' => 275, 'producteur_id' => $producteur2->id, 'typeproduit_id' => $types['Céréales']->id],
         ];
+
 
         $produits = [];
         foreach ($produitsData as $p) {

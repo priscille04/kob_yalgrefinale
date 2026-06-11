@@ -19,6 +19,8 @@ function PublicLayout({ children }) {
   return <>{children}</>;
 }
 import DashboardProducteur from './pages/producteur/DashboardProducteur';
+import LoginProducteur from './pages/producteur/LoginProducteur';
+
 import ConseilsProducteur from './pages/producteur/ConseilsProducteur';
 import CommandesProducteur from './pages/producteur/CommandesProducteur';
 import NotificationsProducteur from './pages/producteur/NotificationsProducteur';
@@ -38,9 +40,10 @@ export default function App() {
       <BrowserRouter>
         <Routes>
           <Route path="/login" element={<Login />} />
+          <Route path="/login-producteur" element={<LoginProducteur />} />
           <Route path="/register" element={<Register />} />
           <Route path="/" element={<PublicHome />} />
-          <Route path="/marcher" element={<MarchePublic />} />
+          <Route path="/marche" element={<MarchePublic />} />
           <Route
             path="/contact"
             element={
@@ -72,10 +75,11 @@ export default function App() {
             <Route path="boutiques" element={<Boutiques />} />
             <Route path="*" element={<div className="flex items-center justify-center h-64"><p className="text-gray-500 text-lg">Page introuvable (404)</p></div>} />
           </Route>
-          <Route path="dashboard-producteur" element={<DashboardProducteur />} />
-          <Route path="producteur/conseils" element={<ConseilsProducteur />} />
-          <Route path="dashboard-producteur" element={<CommandesProducteur />} />
-          <Route path="dashboard-producteur" element={<NotificationsProducteur />} />
+          <Route path="/dashboard-producteur" element={<DashboardProducteur />} />
+          <Route path="/dashboard-producteur/conseils" element={<ConseilsProducteur />} />
+          <Route path="/dashboard-producteur/commandes" element={<CommandesProducteur />} />
+          <Route path="/dashboard-producteur/notifications" element={<NotificationsProducteur />} />
+
           <Route path="/conversation/:id" element={<Conversation />} />
 
 

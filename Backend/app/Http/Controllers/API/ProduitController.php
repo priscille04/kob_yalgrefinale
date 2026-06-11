@@ -4,7 +4,6 @@ namespace App\Http\Controllers\API;
 
 use App\Http\Controllers\Controller;
 use App\Models\Produit;
-use App\Models\Boutique;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 
@@ -12,7 +11,7 @@ class ProduitController extends Controller
 {
     public function index(Request $request)
     {
-        $query = Produit::with('producteur.utilisateur', 'typeproduit');
+        $query = Produit::with('producteur.utilisateur', 'producteur.boutique', 'typeproduit');
 
         if ($request->filled('search')) {
             $s = $request->search;
@@ -40,24 +39,23 @@ class ProduitController extends Controller
             'description' => 'nullable|string',
             'image' => 'nullable|image|max:2048',
             'quantite' => 'required|integer|min:0',
-            'prix' => 'required|numeric|min:0'
+            'prix' => 'required|numeric|min:0',
+            'producteur_id' => 'nullable|integer'
         ]);
 
         $data = $request->except('image');
 
-        // producteur_id auto depuis le producteur connecté
-        // (la table produits.producteur_id référence la table producteurs, pas utilisateurs)
-        // Cas admin : laisser producteur_id venir du front.
-        // Cas producteur connecté : forcer le producteur associé à l'utilisateur connecté.
-        // On ne déduit pas producteur_id depuis la relation utilisateur->producteur,
-        // car elle peut être absente pour certains rôles.
-        // La route admin permet à l’admin de choisir producteur_id côté front.
-        // La route producteur (auth) envoie aussi producteur_id.
+        // producteur_id = producteurs.id (pas utilisateurs.id)
+        // - si le front fournit producteur_id (admin), on le respecte
+        // - sinon, on le déduit depuis le producteur connecté
         $data['producteur_id'] = $request->input('producteur_id');
+        if (!$data['producteur_id'] && auth('sanctum')->check()) {
+            $data['producteur_id'] = auth('sanctum')->user()?->producteur?->id;
+        }
 
-
-
-
+        if (!$data['producteur_id']) {
+            return response()->json(['message' => 'producteur_id manquant ou compte sans producteur'], 422);
+        }
 
 
         if ($request->hasFile('image')) {
@@ -66,7 +64,7 @@ class ProduitController extends Controller
 
         $produit = Produit::create($data);
 
-        return response()->json($produit->load('producteur', 'typeproduit'), 201);
+        return response()->json($produit->load('producteur.boutique', 'typeproduit'), 201);
     }
 
     public function update(Request $request, Produit $produit)
@@ -91,7 +89,7 @@ class ProduitController extends Controller
 
         $produit->update($data);
 
-        return response()->json($produit->load('producteur', 'typeproduit'));
+        return response()->json($produit->load('producteur.boutique', 'typeproduit'));
     }
 
     public function destroy(Produit $produit)
@@ -102,9 +100,22 @@ class ProduitController extends Controller
 
     public function getProducteurProduits(Request $request)
     {
-        $query = Produit::with('producteur.utilisateur', 'typeproduit');
+        $query = Produit::with('producteur.utilisateur', 'producteur.boutique', 'typeproduit');
 
-        $query->where('producteur_id', auth()->user()->id);
+        $user = auth('sanctum')->user();
+
+        if (!$user) {
+            return response()->json(['message' => 'Utilisateur non authentifié'], 401);
+        }
+
+        // S'assure qu'on a bien le producteur lié au compte (plutôt que laisser une requête silencieuse échouer)
+        $producteurId = $user->producteur?->id;
+
+        if (!$producteurId) {
+            return response()->json(['message' => 'Aucun producteur lié à ce compte'], 403);
+        }
+
+        $query->where('producteur_id', $producteurId);
 
         if ($request->filled('search')) {
             $s = $request->search;
@@ -124,3 +135,4 @@ class ProduitController extends Controller
             : response()->json($query->paginate(15));
     }
 }
+

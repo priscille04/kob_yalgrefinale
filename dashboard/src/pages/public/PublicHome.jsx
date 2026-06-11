@@ -84,12 +84,18 @@ export default function PublicHome() {
       <main className="flex-1">
 
         {/* HERO PREMIUM */}
-        <section className="relative h-[85vh] flex items-center">
+        <section className="relative h-[85vh] flex items-center overflow-hidden">
 
-          <div
-            className="absolute inset-0 bg-cover bg-center"
-            style={{ backgroundImage: 'url(/hero.png)' }}
-          />
+          {/*  IMAGE → VIDEO */}
+          <video
+            className="absolute inset-0 w-full h-full object-cover"
+            autoPlay
+            loop
+            muted
+            playsInline
+          >
+            <source src="/acceuils.mp4" type="video/mp4" />
+          </video>
 
           <div className="absolute inset-0 bg-gradient-to-r from-green-950/85 via-green-900/60 to-green-500/20" />
 
@@ -151,7 +157,6 @@ export default function PublicHome() {
           >
             Accéder au marché
           </button>
-
 
         </section>
 

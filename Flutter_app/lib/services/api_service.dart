@@ -10,10 +10,10 @@ class ApiService {
   // CONFIGURATION IP DU BACKEND
   // Modifier cette valeur selon votre environnement:
   // - Emulator Android : 'http://10.0.2.2:8000/api'
-  // - Téléphone physique (même WiFi) : 'http://192.168.43.152:8000/api'
+  // - Téléphone physique (même WiFi) : Remplacez 192.168.X.X par l'IP de votre ordinateur
   // - iOS Simulator : 'http://localhost:8000/api'
   // ==========================================
-  static const String _apiBaseUrl = 'http://192.168.43.152:8000/api';
+  static const String _apiBaseUrl = 'http://192.168.1.100:8000/api'; // ← CHANGE THIS IP
 
   static String get _baseUrl {
     if (kIsWeb) {

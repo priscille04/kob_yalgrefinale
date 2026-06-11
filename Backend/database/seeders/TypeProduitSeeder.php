@@ -9,23 +9,43 @@ class TypeProduitSeeder extends Seeder
 {
     public function run()
     {
-        DB::table('typeproduits')->insert([
-            ['nom' => 'Maïs'],
-            ['nom' => 'Riz'],
-            ['nom' => 'Sorgho'],
-            ['nom' => 'Mil'],
-            ['nom' => 'Coton'],
-            ['nom' => 'Arachide'],
-            ['nom' => 'Soja'],
-            ['nom' => 'Niébé'],
-            ['nom' => 'Tomate'],
-            ['nom' => 'Oignon'],
-            ['nom' => 'Pomme de terre'],
-            ['nom' => 'Mangue'],
-            ['nom' => 'Banane'],
-            ['nom' => 'Papaye'],
-             ['nom' => 'piment'],
-            ['nom' => 'Igname'],
-        ]);
+        // Structure attendue par l’app :
+        // produits_json = [ { nom: string, description?: string }, ... ]
+        $data = [
+            'Céréales' => [
+                ['nom' => 'Maïs', 'description' => 'Maïs'],
+                ['nom' => 'Mil', 'description' => 'Mil'],
+                ['nom' => 'Sorgho', 'description' => 'Sorgho'],
+            ],
+            'Légumineuses' => [
+                ['nom' => 'Haricots', 'description' => 'Haricots'],
+            ],
+            'Tubercules' => [
+                ['nom' => 'Igname', 'description' => 'Igname'],
+            ],
+            'Légumes' => [
+                ['nom' => 'Tomates', 'description' => 'Tomates'],
+                ['nom' => 'Oignons', 'description' => 'Oignons'],
+                ['nom' => 'Piment', 'description' => 'Piment'],
+            ],
+            'Fruits' => [
+                ['nom' => 'Mangues', 'description' => 'Mangues'],
+            ],
+            'Cultures industrielles' => [
+                ['nom' => 'Coton', 'description' => 'Coton'],
+            ],
+        ];
+
+        foreach ($data as $type => $produits) {
+            DB::table('typeproduits')->updateOrInsert(
+                ['nom' => $type],
+                [
+                    'produits_json' => json_encode($produits, JSON_UNESCAPED_UNICODE),
+                    'created_at' => now(),
+                    'updated_at' => now(),
+                ]
+            );
+        }
     }
 }
+

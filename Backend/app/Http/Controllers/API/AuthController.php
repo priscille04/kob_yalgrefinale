@@ -29,11 +29,9 @@ class AuthController extends Controller
             $role = $request->role;
             $motDePasse = $request->mot_de_passe;
 
-            // admin auto
-            if (str_contains(strtolower($request->email), 'admin@kobyalgre.bf')) {
-                $role = 'admin';
-                $motDePasse = 'admin1234';
-            }
+            // IMPORTANT: pas d’admin auto basé sur l’email.
+            // La création d’admins doit être faite via seeder/commande admin sécurisé.
+
 
             $utilisateur = Utilisateur::create([
                 'nom' => $request->nom,
@@ -50,9 +48,24 @@ class AuthController extends Controller
                 ]);
             }
 
-            // PRODUCTEUR (sans boutique ici)
+            // PRODUCTEUR + BOUTIQUE
+            // Important : le front fait ensuite un `check-boutique` => il faut que `boutique_id` soit bien rempli.
             if ($role === 'producteur') {
+                // Optionnel mais recommandé : exiger le code boutique ici pour éviter les comptes “producteur” incomplets.
+                $request->validate([
+                    'code_boutique' => 'required'
+                ]);
+
+                $boutique = Boutique::where('code_unique', $request->code_boutique)->first();
+
+                if (!$boutique) {
+                    return response()->json([
+                        'message' => 'Code boutique invalide'
+                    ], 422);
+                }
+
                 $utilisateur->producteur()->create([
+                    'boutique_id' => $boutique->id,
                     'type_culture' => $request->input('type_culture', ''),
                     'localisation' => $request->input('localisation', '')
                 ]);
@@ -76,6 +89,29 @@ class AuthController extends Controller
     }
 
     /**
+     * Resolve role by email (admin vs producteur)
+     * Body: { email: string }
+     */
+    public function resolveRole(Request $request)
+    {
+        $request->validate([
+            'email' => 'required|email'
+        ]);
+
+        $utilisateur = Utilisateur::where('email', $request->email)->first();
+
+        if (!$utilisateur) {
+            return response()->json([
+                'role' => 'none'
+            ], 404);
+        }
+
+        return response()->json([
+            'role' => $utilisateur->role
+        ], 200);
+    }
+
+    /**
      * LOGIN
      */
     public function login(Request $request)
@@ -84,6 +120,7 @@ class AuthController extends Controller
             'email' => 'required|email',
             'mot_de_passe' => 'required|string'
         ]);
+
 
         $utilisateur = Utilisateur::where('email', $request->email)->first();
 
@@ -144,8 +181,7 @@ class AuthController extends Controller
         'boutique' => $boutique
     ], 201);
 }
-    /**
-     * CHECK BOUTIQUE
+    /*CHECK BOUTIQUE
      */
    public function checkBoutique(Request $request)
 {
@@ -179,8 +215,40 @@ class AuthController extends Controller
     ]);
 }
 
-    /**
-     * FORMAT USER
+    /*
+     ME (pour /api/auth/me)
+     */
+    public function me(Request $request)
+    {
+        return response()->json([
+            'utilisateur' => $this->formatUser($request->user())
+        ]);
+    }
+
+    /*
+      LOGOUT (pour /api/auth/logout)
+     */
+    public function logout(Request $request)
+    {
+        // invalide tous les tokens de l’utilisateur courant
+        $request->user()?->tokens()?->delete();
+
+        return response()->json(['message' => 'Déconnexion réussie']);
+    }
+
+    /*REFRESH TOKEN (pour /api/auth/refresh)
+     */
+    public function refreshToken(Request $request)
+    {
+        $token = $request->user()->createToken('auth_token')->plainTextToken;
+
+        return response()->json([
+            'token' => $token,
+            'utilisateur' => $this->formatUser($request->user())
+        ]);
+    }
+
+    /*FORMAT USER
      */
     private function formatUser(Utilisateur $utilisateur): array
     {
@@ -193,3 +261,4 @@ class AuthController extends Controller
         return $data;
     }
 }
+

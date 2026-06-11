@@ -32,6 +32,18 @@ export function AuthProvider({ children }) {
         return data;
     };
 
+    const loginWithToken = ({ utilisateur, token }) => {
+        if (!utilisateur || !token) {
+            throw new Error('Réponse login invalide');
+        }
+
+        localStorage.setItem('token', token);
+        localStorage.setItem('user', JSON.stringify(utilisateur));
+        setUser(utilisateur);
+
+        return { utilisateur, token };
+    };
+
     const logout = () => {
         localStorage.removeItem('token');
         localStorage.removeItem('user');
@@ -43,6 +55,7 @@ export function AuthProvider({ children }) {
             value={{
                 user,
                 login,
+                loginWithToken,
                 logout,
                 isAuthenticated: !!user
             }}
