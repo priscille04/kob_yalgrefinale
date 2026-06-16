@@ -16,20 +16,21 @@ class Utilisateur extends Model
         'email',
         'telephone',
         'mot_de_passe',
-        'role'
+        'role',
     ];
 
     protected $hidden = [
-        'mot_de_passe'
+        'mot_de_passe',
     ];
 
     public function client()
     {
         return $this->hasOne(Client::class);
     }
-
+   
     public function producteur()
     {
         return $this->hasOne(Producteur::class);
     }
 }
+

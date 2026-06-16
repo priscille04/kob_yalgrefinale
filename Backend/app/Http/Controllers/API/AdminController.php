@@ -118,14 +118,44 @@ class AdminController extends Controller
         ]);
 
         try {
-            // Debug: si SMTP ne fonctionne pas, au moins on voit l’OTP.
+            // Debug: trace utile
             Log::info('ADMIN OTP (debug): email=' . $utilisateur->email . ' otp=' . $otp);
+
+            // Mode dev : évite de bloquer si SMTP échoue (utile pour debug)
+            $mailMailer = (string) env('MAIL_MAILER', 'log');
+            $appDebug = (bool) env('APP_DEBUG', false);
+
+            if ($appDebug || $mailMailer === 'log') {
+                return response()->json([
+                    'message' => 'OTP envoyé (mode dev/log), check JSON au lieu d’email',
+                    'otp' => $otp,
+                    'expiresAt' => $expiresAt->toISOString(),
+                ], 200);
+            }
 
             Mail::to($utilisateur->email)->send(new AdminOtpMail($otp));
         } catch (\Throwable $e) {
             Log::error('AdminOtpMail failed: ' . $e->getMessage());
-            return response()->json(['message' => "OTP généré, mais l’envoi email a échoué"], 500);
+
+            // si SMTP échoue, on renvoie au moins l’OTP en clair en mode dev/log
+            $mailMailer = (string) env('MAIL_MAILER', 'log');
+            $appDebug = (bool) env('APP_DEBUG', false);
+
+            if ($appDebug || $mailMailer === 'log') {
+                return response()->json([
+                    'message' => 'OTP généré, mais envoi email a échoué (mode dev/log)',
+                    'otp' => $otp,
+                    'expiresAt' => $expiresAt->toISOString(),
+                ], 200);
+            }
+
+            return response()->json([
+                'message' => "OTP généré, mais l’envoi email a échoué",
+                'error' => $e->getMessage(),
+            ], 500);
         }
+
+
 
 
         return response()->json([

@@ -45,17 +45,24 @@ class ProduitController extends Controller
 
         $data = $request->except('image');
 
-        // producteur_id = producteurs.id (pas utilisateurs.id)
-        // - si le front fournit producteur_id (admin), on le respecte
-        // - sinon, on le déduit depuis le producteur connecté
-        $data['producteur_id'] = $request->input('producteur_id');
-        if (!$data['producteur_id'] && auth('sanctum')->check()) {
-            $data['producteur_id'] = auth('sanctum')->user()?->producteur?->id;
+        // STRICT: on NE fait jamais confiance au producteur_id envoyé par le front.
+        // On déduit uniquement depuis le compte connecté.
+        $producteurId = null;
+        if (auth('sanctum')->check()) {
+            // évite d'échouer si la relation porte la mauvaise clé.
+            $producteurId = auth('sanctum')->user()?->producteur?->id;
+            if (!$producteurId) {
+                $producteurId = auth('sanctum')->user()?->producteur?->utilisateur_id;
+            }
         }
 
-        if (!$data['producteur_id']) {
-            return response()->json(['message' => 'producteur_id manquant ou compte sans producteur'], 422);
+        if (!$producteurId) {
+            return response()->json(['message' => 'producteur_id manquant ou compte sans producteur', 'debug_user_id' => auth('sanctum')->user()?->id ?? null], 422);
         }
+
+        $data['producteur_id'] = $producteurId;
+
+
 
 
         if ($request->hasFile('image')) {

@@ -22,13 +22,16 @@ export default function ProduitsProducteur() {
     prix: '',
     quantite: '',
     description: '',
-    image: '',
+    imageFile: null,
+    image: '', // legacy/backward compat (UI)
     typeproduit_id: ''
   });
 
+
   const [editId, setEditId] = useState(null);
 
-  const myId = Number(user?.producteur_id);
+ const myId = user?.producteur_id ?? null;
+
 
   useEffect(() => {
     if (user) loadData();
@@ -76,32 +79,47 @@ export default function ProduitsProducteur() {
 
     try {
 
-      const payload = {
-        nom: form.nom,
-        prix: Number(form.prix),
-        quantite: Number(form.quantite),
-        description: form.description,
-        image: form.image,
-        typeproduit_id: form.typeproduit_id ? Number(form.typeproduit_id) : null,
-        producteur_id: myId
-      };
+      const payload = new FormData();
+      payload.append('nom', form.nom);
+      payload.append('prix', String(Number(form.prix)));
+      payload.append('quantite', String(Number(form.quantite)));
+      payload.append('description', form.description ?? '');
+      if (form.typeproduit_id) {
+        payload.append('typeproduit_id', String(Number(form.typeproduit_id)));
+      }
+      if (myId) {
+        payload.append('producteur_id', String(Number(myId)));
+      }
+      if (form.imageFile) {
+        // sécurise le type envoyé au backend
+        payload.append('image', form.imageFile);
+      }
+
+
 
       console.log("ENVOI PRODUIT :", payload);
 
       if (editId) {
-        await api.put(`/v1/produits/${editId}`, payload);
+        await api.put(`/v1/produits/${editId}`, payload, {
+          headers: { 'Content-Type': 'multipart/form-data' }
+        });
       } else {
-        await api.post('/v1/produits', payload);
+        await api.post('/v1/produits', payload, {
+          headers: { 'Content-Type': 'multipart/form-data' }
+        });
       }
+
 
       setForm({
         nom: '',
         prix: '',
         quantite: '',
         description: '',
+        imageFile: null,
         image: '',
         typeproduit_id: ''
       });
+
 
       setEditId(null);
       setShowForm(false);
@@ -236,10 +254,16 @@ export default function ProduitsProducteur() {
               </select>
             </div>
 
-            <input className="border p-2 rounded w-full" placeholder="Image"
-              value={form.image}
-              onChange={(e) => setForm({ ...form, image: e.target.value })}
+            <input
+              type="file"
+              accept="image/*"
+              className="border p-2 rounded w-full"
+              onChange={(e) => {
+                const file = e.target.files?.[0] || null;
+                setForm({ ...form, imageFile: file, image: file ? file.name : '' });
+              }}
             />
+
 
             <textarea className="border p-2 rounded w-full" placeholder="Description"
               value={form.description}
