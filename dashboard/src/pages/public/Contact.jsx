@@ -1,4 +1,6 @@
 import { useNavigate, Link } from 'react-router-dom';
+import logo from "../../assets/image/logo.jpeg";
+import contact from "../../assets/image/contact.jpg";
 
 export default function Contact() {
   const navigate = useNavigate();
@@ -10,18 +12,19 @@ export default function Contact() {
       <header className="sticky top-0 z-50 bg-white/80 backdrop-blur-xl shadow flex justify-between items-center px-8 py-4">
 
         {/* LOGO */}
-        <div className="flex items-center gap-3">
-          <img src="/logo.png" alt="logo" className="w-10 h-10 object-contain" />
-          <h1 className="text-xl font-extrabold text-green-700 tracking-wide">
-            KOB YALGRÉ
-          </h1>
-        </div>
+         <div className="flex items-center gap-3">
+                 <img
+          src={logo}
+          alt="KOB YALGRÉ"
+          className="w-20 h-20 object-contain"
+        />
+                </div>
 
         {/* NAV */}
         <nav className="hidden md:flex gap-8 font-medium text-gray-700">
           <Link to="/" className="hover:text-green-600">Accueil</Link>
           <Link to="/apropos" className="hover:text-green-600">À propos</Link>
-          <Link to="/#explorer" className="hover:text-green-600">Explorer</Link>
+          <Link to="/marcher" className="hover:text-green-600">Explorer</Link>
           <Link to="/contact" className="text-green-700 font-semibold">Contact</Link>
         </nav>
 
@@ -35,8 +38,16 @@ export default function Contact() {
       </header>
 
       {/* CONTENU */}
-      <main className="flex-1">
-
+      <main
+  className="flex-1 relative"
+ style={{
+  backgroundImage: `url(${contact})`,
+  backgroundSize: "cover",
+  backgroundPosition: "center",
+  backgroundRepeat: "no-repeat",
+  backgroundAttachment: "fixed",
+}}
+>
         <div className="max-w-6xl mx-auto px-8 py-12">
 
           {/* RETOUR */}
@@ -71,7 +82,7 @@ export default function Contact() {
               </p>
 
               <div className="mt-6 space-y-2 text-white/90">
-                <p>contact@kobyalgre.com</p>
+                <p>contact@kobyalgre.bf</p>
                 <p> +226 54 67 89 34</p>
                 <p> Ouagadougou, Burkina Faso</p>
               </div>
@@ -126,11 +137,55 @@ export default function Contact() {
 
       </main>
 
-      {/* FOOTER FIXE */}
-      <footer className="bg-green-900 text-white py-6 text-center mt-auto">
-        © 2026 KOB YALGRÉ — Plateforme agricole intelligente
-      </footer>
+      {/* FOOTER */}
+      <footer className="bg-green-900 text-white">
+  <div className="max-w-7xl mx-auto px-6 py-10 grid md:grid-cols-3 gap-8">
 
+    {/* Logo / Présentation */}
+    <div>
+      <h3 className="text-2xl font-bold text-yellow-400">
+        KOB YALGRÉ
+      </h3>
+      <p className="mt-3 text-green-100">
+        Plateforme agricole dédiée à la mise en relation
+        des producteurs et des consommateurs pour une agriculture
+        moderne, durable et accessible.
+      </p>
+    </div>
+
+    {/* Liens rapides */}
+    <div>
+      <h4 className="font-semibold text-lg mb-3">
+        Liens rapides
+      </h4>
+      <ul className="space-y-2 text-green-100">
+        <li><a href="/" className="hover:text-yellow-400">Accueil</a></li>
+        <li><a href="APropos" className="hover:text-yellow-400">À propos</a></li>
+        <li><a href="Marcher" className="hover:text-yellow-400">Marcher</a></li>
+        <li><a href="Contact" className="hover:text-yellow-400">Contact</a></li>
+      </ul>
+    </div>
+
+    {/* Contact */}
+    <div>
+      <h4 className="font-semibold text-lg mb-3">
+        Contact
+      </h4>
+      <p className="text-green-100">📍 Ouagadougou, Burkina Faso</p>
+      <p className="text-green-100">📧 contact@kobyalgre.bf</p>
+      <p className="text-green-100">📞 +226 54 67 89 34</p>
+    </div>
+
+  </div>
+
+  {/* Bas du footer */}
+  <div className="border-t border-green-700 text-center py-4 text-green-200">
+    © 2026 <span className="font-semibold">KOB YALGRÉ</span> —
+    Tous droits réservés. Connecter l'agriculture à l'innovation.
+  </div>
+</footer>
     </div>
   );
 }
+
+ 

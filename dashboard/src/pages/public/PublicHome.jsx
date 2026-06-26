@@ -1,5 +1,13 @@
 import { useEffect, useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
+import elearning from "../../assets/image/elearning.jpg";
+import videoAcceuil from "../../assets/image/acceuil.mp4";
+import marcherBg from "../../assets/image/marcher.jpg";
+import contactBg from "../../assets/image/contacte.jpg";
+import logo from "../../assets/image/logo.jpeg";
+import activeImg from "../../assets/image/active.jpg";
+import durableImg from "../../assets/image/durable.jpg";
+import pibImg from "../../assets/image/pib.jpg";
 
 export default function PublicHome() {
   const navigate = useNavigate();
@@ -16,10 +24,11 @@ export default function PublicHome() {
       <header className="sticky top-0 z-50 bg-white/80 backdrop-blur-xl shadow flex justify-between items-center px-8 py-4">
 
         <div className="flex items-center gap-3">
-          <img src="/logo.png" alt="logo" className="w-10 h-10 object-contain" />
-          <h1 className="text-xl font-extrabold text-green-700 tracking-wide">
-            KOB YALGRÉ
-          </h1>
+         <img
+  src={logo}
+  alt="KOB YALGRÉ"
+  className="w-20 h-20 object-contain"
+/>
         </div>
 
         <nav className="hidden md:flex gap-8 font-medium text-gray-700">
@@ -27,7 +36,7 @@ export default function PublicHome() {
             href="#"
             onClick={(e) => {
               e.preventDefault();
-              navigate('/#elearning');
+              navigate('/');
             }}
             className="hover:text-green-600 transition"
           >
@@ -86,7 +95,7 @@ export default function PublicHome() {
         {/* HERO PREMIUM */}
         <section className="relative h-[85vh] flex items-center overflow-hidden">
 
-          {/*  IMAGE → VIDEO */}
+          {/*   VIDEO */}
           <video
             className="absolute inset-0 w-full h-full object-cover"
             autoPlay
@@ -94,21 +103,21 @@ export default function PublicHome() {
             muted
             playsInline
           >
-            <source src="/acceuils.mp4" type="video/mp4" />
+            <source src={videoAcceuil} type="video/mp4" />
           </video>
 
-          <div className="absolute inset-0 bg-gradient-to-r from-green-950/85 via-green-900/60 to-green-500/20" />
+          
 
           <div className="relative max-w-6xl mx-auto px-8">
 
-            {/* BADGE */}
-            <div className="inline-block px-4 py-1 mb-5 text-xs tracking-widest uppercase bg-white/10 text-white rounded-full">
-              Plateforme Agricole Digitale
-            </div>
+          {/* BADGE */}
+<div className="inline-block px-6 py-3 mb-5 text-sm md:text-base font-bold tracking-widest uppercase rounded-full text-green-300 bg-black shadow-[0_0_25px_rgba(0,0,0,0.9),0_0_20px_rgba(34,197,94,0.6)] animate-pulse">
+  BIENVENUE , NIWONGO , DANSSER , IZOUBA_ZOUBA
+</div>
 
             {/* TITRE */}
             <h1 className="text-6xl md:text-7xl font-extrabold text-white leading-none tracking-tight">
-              KOB YALGRÉ
+             À KOB-YALGRÉ
             </h1>
 
             {/* SLOGAN */}
@@ -140,47 +149,67 @@ export default function PublicHome() {
           </div>
         </section>
 
-        {/* EXPLORER */}
-        <section id="explorer" className="max-w-6xl mx-auto px-8 py-20 text-center">
+       {/* EXPLORER */}
+<section
+  id="explorer"
+  className="relative py-24 text-center overflow-hidden"
+  style={{
+    backgroundImage: `url(${marcherBg})`,
+    backgroundSize: "cover",
+    backgroundPosition: "center",
+    backgroundRepeat: "no-repeat",
+  }}
+>
+  
+  {/* Overlay sombre */}
+  <div className="absolute inset-0 bg-black/50"></div>
 
-          <h2 className="text-3xl font-bold text-gray-800 mb-6">
-             Marché agricole
-          </h2>
+  {/* Contenu */}
+  <div className="relative z-10 max-w-6xl mx-auto px-8">
 
-          <p className="text-gray-600 max-w-xl mx-auto">
-            Découvrez les produits agricoles disponibles et connectez-vous pour commander.
-          </p>
+    <h2 className="text-4xl font-bold text-white mb-6">
+      Marché agricole
+    </h2>
 
-          <button
-            onClick={() => navigate('/marcher')}
-            className="mt-6 bg-green-600 text-white px-6 py-3 rounded-xl shadow hover:bg-green-700"
-          >
-            Accéder au marché
-          </button>
+    <p className="text-white/90 max-w-xl mx-auto text-lg">
+      Découvrez les produits agricoles disponibles et connectez-vous pour commander directement auprès des producteurs.
+    </p>
 
-        </section>
+    <button
+      onClick={() => navigate('/marcher')}
+      className="mt-8 bg-green-600 text-white px-8 py-3 rounded-xl shadow-lg hover:bg-green-700 hover:scale-105 transition"
+    >
+      Accéder au marché
+    </button>
+
+  </div>
+
+</section>
 
         {/* E-LEARNING */}
         <section id="elearning" className="bg-white py-20 px-8">
 
           <div className="max-w-6xl mx-auto grid md:grid-cols-2 gap-10 items-center">
 
-            <img
-              src="/elearning.jpg"
-              className="rounded-3xl shadow-lg"
-            />
+           <img
+  src={elearning}
+  alt="E-learning agricole"
+  className="rounded-3xl shadow-lg"
+/>
 
             <div>
               <h2 className="text-3xl font-bold text-gray-800 mb-4">
                 KOB YALGRÉ E-learning
               </h2>
 
-              <p className="text-gray-600 mb-6 leading-relaxed">
-                Apprenez les meilleures techniques agricoles modernes adaptées aux réalités africaines.
-              </p>
+             <p className="text-gray-600 mb-6 leading-relaxed">
+  Apprenez les meilleures techniques agricoles modernes adaptées aux réalités africaines. 
+  Découvrez des méthodes simples, efficaces et accessibles pour améliorer vos rendements, 
+  optimiser vos cultures et développer une agriculture durable et rentable au quotidien.
+</p>
 
               <button
-                onClick={() => navigate('/login')}
+                onClick={() => navigate('/VideoPublic')}
                 className="bg-green-600 text-white px-6 py-3 rounded-xl shadow hover:bg-green-700"
               >
                 Accéder aux cours
@@ -192,72 +221,169 @@ export default function PublicHome() {
 
         {/* STATS PREMIUM */}
         <section className="py-16 px-8">
+<div className="w-full px-6 py-10">
 
-          <div className="max-w-5xl mx-auto grid md:grid-cols-3 gap-6 text-center">
+  <div className="grid grid-cols-1 md:grid-cols-3 gap-10">
 
-            <div className="bg-white p-6 rounded-2xl shadow hover:scale-105 transition">
-              <p className="text-4xl font-extrabold text-green-700">70%</p>
-              <p className="text-gray-600 mt-2">Population agricole active</p>
-            </div>
+    {/* ACTIVE */}
+    <div className="bg-white rounded-2xl shadow-lg overflow-hidden">
 
-            <div className="bg-white p-6 rounded-2xl shadow hover:scale-105 transition">
-              <p className="text-4xl font-extrabold text-green-700">+10 ans</p>
-              <p className="text-gray-600 mt-2">Impact économique durable</p>
-            </div>
+      <img src={activeImg} className="w-full h-64 object-cover" />
 
-            <div className="bg-white p-6 rounded-2xl shadow hover:scale-105 transition">
-              <p className="text-4xl font-extrabold text-green-700">35%</p>
-              <p className="text-gray-600 mt-2">Contribution au PIB</p>
-            </div>
+      <div className="p-6 text-center">
+        <p className="text-5xl font-bold text-green-700">70%</p>
+        <p className="text-gray-600 mt-2 text-lg">Population agricole active</p>
+      </div>
 
-          </div>
+    </div>
+
+    {/* DURABLE */}
+    <div className="bg-white rounded-2xl shadow-lg overflow-hidden">
+
+      <img src={durableImg} className="w-full h-64 object-cover" />
+
+      <div className="p-6 text-center">
+        <p className="text-5xl font-bold text-green-700">+10 ans</p>
+        <p className="text-gray-600 mt-2 text-lg">Impact économique durable</p>
+      </div>
+
+    </div>
+
+    {/* PIB */}
+    <div className="bg-white rounded-2xl shadow-lg overflow-hidden">
+
+      <img src={pibImg} className="w-full h-64 object-cover" />
+
+      <div className="p-6 text-center">
+        <p className="text-5xl font-bold text-green-700">35%</p>
+        <p className="text-gray-600 mt-2 text-lg">Contribution au PIB</p>
+      </div>
+
+    </div>
+
+  </div>
+
+</div>
 
         </section>
 
         {/* CONTACT */}
-        <section id="contact" className="bg-green-100 py-20 px-8">
+        <section id="contact" 
+        className="bg-green-100 py-20 px-8"
+                style={{
+    backgroundImage: `url(${contactBg})`,
+    
+    backgroundSize: "cover",
+    backgroundPosition: "center",
+    backgroundRepeat: "no-repeat",
+  }}
+>
+  
+        <div className="max-w-6xl mx-auto grid md:grid-cols-2 gap-10 text-gray-900">
 
-          <div className="max-w-6xl mx-auto grid md:grid-cols-2 gap-10">
+{/* TEXTE */}
+<div className="flex flex-col justify-center text-white">
 
-            <div className="flex flex-col justify-center">
-              <h2 className="text-3xl font-bold text-gray-800 mb-4">
-                 Contact
-              </h2>
+  {/* TITRE */}
+  <h2 className="text-3xl font-bold mb-4">
+    Contact
+  </h2>
 
-              <p className="text-gray-600 mb-6">
-                Une question ? Un projet ? Nous vous accompagnons dans votre réussite agricole.
-              </p>
+  <p className="text-white/80 mb-6">
+    Une question ? Un projet ? Nous vous accompagnons dans votre réussite agricole.
+  </p>
 
-              <div className="space-y-2 text-gray-700">
-                <p> contact@kobyalgre.com</p>
-                <p> +226 54667788</p>
-                <p> Ouagadougou, Burkina Faso</p>
-              </div>
-            </div>
+  <div className="space-y-2 text-white/90">
+    <p>contact@kobyalgre.bf</p>
+    <p>+226 54667788</p>
+    <p>Ouagadougou, Burkina Faso</p>
+  </div>
 
-            <form className="bg-white p-8 rounded-3xl shadow space-y-4">
+</div>
+  {/* FORMULAIRE */}
+  <form className="bg-white p-8 rounded-3xl shadow space-y-4 text-gray-900">
 
-              <input type="text" placeholder="Nom" className="w-full border p-3 rounded-xl" />
-              <input type="email" placeholder="Email" className="w-full border p-3 rounded-xl" />
-              <textarea placeholder="Message" rows="4" className="w-full border p-3 rounded-xl"></textarea>
+    <input
+      type="text"
+      placeholder="Nom"
+      className="w-full border border-gray-300 p-3 rounded-xl text-gray-900 placeholder-gray-500"
+    />
 
-              <button className="w-full bg-green-600 text-white py-3 rounded-xl hover:bg-green-700">
-                Envoyer
-              </button>
+    <input
+      type="email"
+      placeholder="Email"
+      className="w-full border border-gray-300 p-3 rounded-xl text-gray-900 placeholder-gray-500"
+    />
 
-            </form>
+    <textarea
+      placeholder="Message"
+      rows="4"
+      className="w-full border border-gray-300 p-3 rounded-xl text-gray-900 placeholder-gray-500"
+    />
 
-          </div>
+    <button
+      type="submit"
+      className="w-full bg-green-600 text-white p-3 rounded-xl hover:bg-green-700 transition"
+    >
+      Envoyer
+    </button>
+
+  </form>
+
+</div>
+             
 
         </section>
 
       </main>
 
       {/* FOOTER */}
-      <footer className="bg-green-900 text-white py-6 text-center">
-        © 2026 KOB YALGRÉ — Plateforme agricole intelligente
-      </footer>
+      <footer className="bg-green-900 text-white">
+  <div className="max-w-7xl mx-auto px-6 py-10 grid md:grid-cols-3 gap-8">
 
+    {/* Logo / Présentation */}
+    <div>
+      <h3 className="text-2xl font-bold text-yellow-400">
+        KOB YALGRÉ
+      </h3>
+      <p className="mt-3 text-green-100">
+        Plateforme agricole dédiée à la mise en relation
+        des producteurs et des consommateurs pour une agriculture
+        moderne, durable et accessible.
+      </p>
+    </div>
+
+    {/* Liens rapides */}
+    <div>
+      <h4 className="font-semibold text-lg mb-3">
+        Liens rapides
+      </h4>
+      <ul className="space-y-2 text-green-100">
+        <li><a href="/" className="hover:text-yellow-400">Accueil</a></li>
+        <li><a href="APropos" className="hover:text-yellow-400">À propos</a></li>
+        <li><a href="Marcher" className="hover:text-yellow-400">Marcher</a></li>
+        <li><a href="Contact" className="hover:text-yellow-400">Contact</a></li>
+      </ul>
+    </div>
+
+    {/* Contact */}
+    <div>
+      <h4 className="font-semibold text-lg mb-3">
+        Contact
+      </h4>
+      <p className="text-green-100">📍 Ouagadougou, Burkina Faso</p>
+      <p className="text-green-100">📧 contact@kobyalgre.bf</p>
+      <p className="text-green-100">📞 +226 54 67 89 34</p>
+    </div>
+
+  </div>
+
+  {/* Bas du footer */}
+  <div className="border-t border-green-700 text-center py-4 text-green-200">
+    © 2026 <span className="font-semibold">KOB YALGRÉ</span> —
+    Tous droits réservés. Connecter l'agriculture à l'innovation.
+  </div>
+</footer>
     </div>
   );
 }

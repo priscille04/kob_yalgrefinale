@@ -17,7 +17,8 @@ use App\Http\Controllers\API\ConversationController;
 use App\Http\Controllers\API\MessageController;
 use App\Http\Controllers\API\MeteoController;
 use App\Http\Controllers\API\BoutiqueController;
-use App\Http\Controllers\API\TypeProduitController; //  AJOUT
+use App\Http\Controllers\API\TypeProduitController; 
+use App\Http\Controllers\Api\SubscriptionController;
 
 Route::prefix('v1')->group(function () {
     Route::apiResource('boutiques', BoutiqueController::class);
@@ -112,3 +113,17 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/produits/mes-produits', [ProduitController::class, 'mesProduits']);
     Route::get('/produits/marche', [ProduitController::class, 'marche']);
 });
+
+
+
+Route::post('/check-subscription', [SubscriptionController::class, 'check']);
+
+//Route::post('/create-subscription', [SubscriptionController::class, 'create']);
+
+Route::post('/validate-code', [SubscriptionController::class, 'validateCode']);
+
+Route::post('/payment', [SubscriptionController::class, 'payment']);
+
+Route::post('/access-elearning', [SubscriptionController::class, 'accessElearning']);
+
+Route::post('/create-subscription', [SubscriptionController::class, 'createSubscription']);

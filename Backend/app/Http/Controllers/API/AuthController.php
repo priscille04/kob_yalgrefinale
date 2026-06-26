@@ -53,19 +53,15 @@ class AuthController extends Controller
             if ($role === 'producteur') {
                 // Optionnel mais recommandé : exiger le code boutique ici pour éviter les comptes “producteur” incomplets.
                 $request->validate([
-                    'code_boutique' => 'required'
+                    //'code_boutique' => 'required'
                 ]);
 
-                $boutique = Boutique::where('code_unique', $request->code_boutique)->first();
+                //$boutique = Boutique::where('code_unique', $request->code_boutique)->first();
 
-                if (!$boutique) {
-                    return response()->json([
-                        'message' => 'Code boutique invalide'
-                    ], 422);
-                }
+               
 
                 $utilisateur->producteur()->create([
-                    'boutique_id' => $boutique->id,
+                    //'boutique_id' => $boutique->id,
                     'type_culture' => $request->input('type_culture', ''),
                     'localisation' => $request->input('localisation', '')
                 ]);
@@ -150,17 +146,10 @@ class AuthController extends Controller
         'nom' => 'required',
         'email' => 'required|email|unique:utilisateurs',
         'password' => 'required|min:6',
-        'code_boutique' => 'required'
+        //'code_boutique' => 'nullable'
     ]);
 
-    $boutique = Boutique::where('code_unique', $request->code_boutique)->first();
-
-    if (!$boutique) {
-        return response()->json([
-            'message' => 'Code boutique invalide'
-        ], 422);
-    }
-
+   
     $user = Utilisateur::create([
         'nom' => $request->nom,
         'email' => $request->email,
@@ -170,7 +159,7 @@ class AuthController extends Controller
 
     $producteur = Producteur::create([
         'utilisateur_id' => $user->id,
-        'boutique_id' => $boutique->id,
+        //'boutique_id' => $boutique->id,
         'type_culture' => '',
         'localisation' => ''
     ]);
@@ -178,7 +167,7 @@ class AuthController extends Controller
     return response()->json([
         'user' => $user,
         'producteur' => $producteur,
-        'boutique' => $boutique
+        //'boutique' => $boutique
     ], 201);
 }
     /*CHECK BOUTIQUE

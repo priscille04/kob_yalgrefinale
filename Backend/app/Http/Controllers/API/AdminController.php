@@ -16,11 +16,7 @@ use Illuminate\Support\Str;
 
 class AdminController extends Controller
 {
-    /**
-     * Request body: { email: string }
-     * (Legacy) Mot de passe temporaire admin par email.
-     * Pour la connexion OTP, utilisez startOtpForAdmin / verifyOtpForAdmin.
-     */
+    
 
     public function resetAdminPassword(Request $request)
     {
@@ -64,13 +60,6 @@ class AdminController extends Controller
 
     }
 
-    /**
-     * STEP 1: Vérifie email + mot_de_passe admin, génère un OTP et l’envoie par email.
-     *
-     * POST /api/v1/admin/login/start-otp
-     * Body: { email: string, mot_de_passe: string }
-     */
-
     public function startOtpForAdmin(Request $request)
     {
         $request->validate([
@@ -89,17 +78,7 @@ class AdminController extends Controller
         }
 
 
-
-
-        // Flow OTP uniquement : le message envoyé par email contient directement le code OTP.
-        // Donc aucun mot de passe n’est requis/validé ici.
-
-
-
-
         $otp = (string) random_int(100000, 999999);
-
-
 
 
         $otpHash = Hash::make($otp);
@@ -203,11 +182,7 @@ class AdminController extends Controller
 
         $utilisateur->load('client', 'producteur');
 
-        // Le front doit rediriger vers :
-        // - /admin si l’admin est connecté (email admin@kobyalgre.bf)
-        // - page producteur sinon.
-        // Ici on ne fait que renvoyer role + token, la logique de redirection côté front.
-
+        
         $token = $utilisateur->createToken('auth_token')->plainTextToken;
 
 

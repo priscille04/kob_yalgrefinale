@@ -1,13 +1,27 @@
 import { useEffect, useState } from 'react';
 import api from '../../api/axios';
+
 import { Loader2 } from 'lucide-react';
 import { useNavigate, Link } from 'react-router-dom';
+import marcher1 from "../../assets/image/marcher1.jpg";
+import marcher2 from "../../assets/image/marcher2.jpg";
+import marcher3 from "../../assets/image/marcher3.jpg";
+import logo from "../../assets/image/logo.jpeg";
 
 export default function MarchePublic() {
   const navigate = useNavigate();
   const [produits, setProduits] = useState([]);
   const [loading, setLoading] = useState(true);
+const images = [marcher1, marcher2, marcher3];
+const [index, setIndex] = useState(0);
 
+useEffect(() => {
+  const interval = setInterval(() => {
+    setIndex((prev) => (prev + 1) % images.length);
+  }, 4000); // change toutes les 4s
+
+  return () => clearInterval(interval);
+}, []);
   useEffect(() => {
     const load = async () => {
       try {
@@ -22,8 +36,8 @@ export default function MarchePublic() {
     load();
   }, []);
 
-  const handleCommander = () => {
-  window.location.href = "http://localhost:56090/";
+ const handleCommander = () => {
+  window.location.href = "http://localhost:55196/commandes_screen.dart";
 };
   return (
     <div className="min-h-screen flex flex-col bg-gradient-to-br from-green-50 via-emerald-50 to-green-100">
@@ -32,13 +46,13 @@ export default function MarchePublic() {
       <header className="sticky top-0 z-50 bg-white/80 backdrop-blur-xl shadow flex justify-between items-center px-8 py-4">
 
         {/* LOGO */}
-        <div className="flex items-center gap-3">
-          <img src="/logo.png" alt="logo" className="w-10 h-10 object-contain" />
-          <h1 className="text-xl font-extrabold text-green-700 tracking-wide">
-            KOB YALGRÉ
-          </h1>
-        </div>
-
+         <div className="flex items-center gap-3">
+                <img
+         src={logo}
+         alt="KOB YALGRÉ"
+         className="w-20 h-20 object-contain"
+       />
+               </div>
         {/* NAV */}
         <nav className="hidden md:flex gap-8 font-medium text-gray-700">
           <Link to="/" className="hover:text-green-600">Accueil</Link>
@@ -55,33 +69,47 @@ export default function MarchePublic() {
           Connexion
         </button>
       </header>
+      
 
       {/* CONTENU */}
       <main className="flex-1">
 
-        {/* HERO MARCHE */}
-        <section className="relative py-16 text-center">
+       {/* HERO MARCHE */}
+<section className="relative py-24 text-center overflow-hidden">
 
-          <div className="max-w-3xl mx-auto px-8">
+  {/* BACKGROUND SLIDER */}
+  <div
+    className="absolute inset-0 bg-cover bg-center transition-all duration-1000"
+    style={{
+      backgroundImage: `url(${images[index]})`,
+    }}
+  />
 
-            <h1 className="text-4xl md:text-5xl font-extrabold text-green-900">
-               Marché Agricole
-            </h1>
+  {/* OVERLAY */}
+  <div className="absolute inset-0 bg-black/50"></div>
 
-            <p className="text-gray-600 mt-4">
-              Découvrez, comparez et commandez directement les produits des producteurs locaux.
-            </p>
+  {/* CONTENT */}
+  <div className="relative z-10 max-w-3xl mx-auto px-8 text-white">
 
-            <button
-              onClick={handleCommander}
-              className="mt-6 bg-green-600 text-white px-6 py-3 rounded-xl shadow hover:bg-green-700 transition font-semibold"
-            >
-              Devenir client / Commander
-            </button>
+    <h1 className="text-4xl md:text-5xl font-extrabold">
+      Marché Agricole
+    </h1>
 
-          </div>
+    <p className="mt-4 text-white/80">
+      Découvrez, comparez et commandez directement les produits des producteurs locaux.
+    </p>
 
-        </section>
+    <button
+      onClick={handleCommander}
+      className="mt-6 bg-green-600 text-white px-6 py-3 rounded-xl shadow hover:bg-green-700 transition font-semibold"
+    >
+      Devenir client / Commander
+    </button>
+
+  </div>
+
+</section>
+
 
         {/* PRODUITS */}
         <section className="max-w-6xl mx-auto px-8 pb-16">
@@ -137,10 +165,52 @@ export default function MarchePublic() {
       </main>
 
       {/* FOOTER */}
-      <footer className="bg-green-900 text-white py-6 text-center mt-auto">
-        © 2026 KOB YALGRÉ — Plateforme agricole intelligente
-      </footer>
+      <footer className="bg-green-900 text-white">
+  <div className="max-w-7xl mx-auto px-6 py-10 grid md:grid-cols-3 gap-8">
 
+    {/* Logo / Présentation */}
+    <div>
+      <h3 className="text-2xl font-bold text-yellow-400">
+        KOB YALGRÉ
+      </h3>
+      <p className="mt-3 text-green-100">
+        Plateforme agricole dédiée à la mise en relation
+        des producteurs et des consommateurs pour une agriculture
+        moderne, durable et accessible.
+      </p>
+    </div>
+
+    {/* Liens rapides */}
+    <div>
+      <h4 className="font-semibold text-lg mb-3">
+        Liens rapides
+      </h4>
+      <ul className="space-y-2 text-green-100">
+        <li><a href="/" className="hover:text-yellow-400">Accueil</a></li>
+        <li><a href="APropos" className="hover:text-yellow-400">À propos</a></li>
+        <li><a href="Marcher" className="hover:text-yellow-400">Marcher</a></li>
+        <li><a href="Contact" className="hover:text-yellow-400">Contact</a></li>
+      </ul>
+    </div>
+
+    {/* Contact */}
+    <div>
+      <h4 className="font-semibold text-lg mb-3">
+        Contact
+      </h4>
+      <p className="text-green-100">📍 Ouagadougou, Burkina Faso</p>
+      <p className="text-green-100">📧 contact@kobyalgre.bf</p>
+      <p className="text-green-100">📞 +226 54 67 89 34</p>
+    </div>
+
+  </div>
+
+  {/* Bas du footer */}
+  <div className="border-t border-green-700 text-center py-4 text-green-200">
+    © 2026 <span className="font-semibold">KOB YALGRÉ</span> —
+    Tous droits réservés. Connecter l'agriculture à l'innovation.
+  </div>
+</footer>
     </div>
   );
 }

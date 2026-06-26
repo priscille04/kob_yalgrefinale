@@ -21,6 +21,7 @@ function PublicLayout({ children }) {
 import DashboardProducteur from './pages/producteur/DashboardProducteur';
 import LoginProducteur from './pages/producteur/LoginProducteur';
 
+import ProduitsProducteur from './pages/producteur/ProduitsProducteur';
 import ConseilsProducteur from './pages/producteur/ConseilsProducteur';
 import CommandesProducteur from './pages/producteur/CommandesProducteur';
 import NotificationsProducteur from './pages/producteur/NotificationsProducteur';
@@ -30,6 +31,7 @@ import PublicHome from './pages/public/PublicHome';
 import MarchePublic from './pages/public/MarchePublic';
 import Contact from './pages/public/Contact';
 import APropos from './pages/public/APropos';
+import VideoPublic from './pages/public/VideoPublic'; 
 
 
 
@@ -43,7 +45,8 @@ export default function App() {
           <Route path="/login-producteur" element={<LoginProducteur />} />
           <Route path="/register" element={<Register />} />
           <Route path="/" element={<PublicHome />} />
-          <Route path="/marche" element={<MarchePublic />} />
+          <Route path="/marcher" element={<MarchePublic />} />
+          <Route path="/VideoPublic" element={<VideoPublic />} />
           <Route
             path="/contact"
             element={
@@ -75,12 +78,14 @@ export default function App() {
             <Route path="boutiques" element={<Boutiques />} />
             <Route path="*" element={<div className="flex items-center justify-center h-64"><p className="text-gray-500 text-lg">Page introuvable (404)</p></div>} />
           </Route>
-          <Route path="/dashboard-producteur" element={<DashboardProducteur />} />
+          <Route path="//dashboard-producteur" element={<DashboardProducteur />} />
           <Route path="/dashboard-producteur/conseils" element={<ConseilsProducteur />} />
+          <Route path="/producteur/dashboard/produits" element={<ProduitsProducteur />} />
           <Route path="/dashboard-producteur/commandes" element={<CommandesProducteur />} />
           <Route path="/dashboard-producteur/notifications" element={<NotificationsProducteur />} />
 
           <Route path="/conversation/:id" element={<Conversation />} />
+
 
 
 
