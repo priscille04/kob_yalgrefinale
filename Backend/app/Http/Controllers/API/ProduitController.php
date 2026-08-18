@@ -37,7 +37,7 @@ class ProduitController extends Controller
             'typeproduit_id' => 'required|exists:typeproduits,id',
             'nom' => 'required|string|max:255',
             'description' => 'nullable|string',
-            'image' => 'nullable|image|max:2048',
+            'image' => 'nullable|image|max:5120',
             'quantite' => 'required|integer|min:0',
             'prix' => 'required|numeric|min:0',
             'producteur_id' => 'nullable|integer'
@@ -80,7 +80,7 @@ class ProduitController extends Controller
             'typeproduit_id' => 'required|exists:typeproduits,id',
             'nom' => 'required|string|max:255',
             'description' => 'nullable|string',
-            'image' => 'nullable|image|max:2048',
+            'image' => 'nullable|image|max:5120',
             'quantite' => 'required|integer|min:0',
             'prix' => 'required|numeric|min:0'
         ]);
@@ -142,4 +142,3 @@ class ProduitController extends Controller
             : response()->json($query->paginate(15));
     }
 }
-

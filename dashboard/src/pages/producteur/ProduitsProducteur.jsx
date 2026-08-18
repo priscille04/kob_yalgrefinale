@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import api from '../../api/axios';
-import { Plus, Loader2, Eye, X } from 'lucide-react';
+import { Plus, Loader2, Eye, X, ImageOff } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 
 export default function ProduitsProducteur() {
@@ -27,15 +27,53 @@ export default function ProduitsProducteur() {
     typeproduit_id: ''
   });
 
+  // Aperçu local de l'image sélectionnée dans le formulaire
+  const [imagePreview, setImagePreview] = useState(null);
 
   const [editId, setEditId] = useState(null);
 
- const myId = user?.producteur_id ?? null;
+  const myId = user?.producteur_id ?? null;
 
+  // Récupère l'URL affichable d'une image renvoyée par le backend Laravel.
+  // Laravel stocke le fichier avec `store('produits', 'public')`, ce qui renvoie
+  // un chemin du type "produits/xxx.jpg" -> il faut le faire précéder de "/storage/".
+  const getImageUrl = (produit) => {
+    const chemin =
+      produit?.image_url ||
+      produit?.image ||
+      produit?.photo_url ||
+      produit?.photo ||
+      (Array.isArray(produit?.images) && produit.images[0]) ||
+      null;
+
+    if (!chemin) return null;
+
+    // URL déjà complète
+    if (chemin.startsWith('http')) return chemin;
+
+    const baseURL = (api.defaults.baseURL || '').replace(/\/api\/?$/, '');
+
+    if (chemin.startsWith('/storage/')) {
+      return `${baseURL}${chemin}`;
+    }
+    if (chemin.startsWith('storage/')) {
+      return `${baseURL}/${chemin}`;
+    }
+
+    // Cas standard renvoyé par le backend: "produits/xxx.jpg"
+    return `${baseURL}/storage/${chemin.replace(/^\/+/, '')}`;
+  };
 
   useEffect(() => {
     if (user) loadData();
   }, [user]);
+
+  // Nettoie l'URL d'aperçu locale quand elle change / au démontage
+  useEffect(() => {
+    return () => {
+      if (imagePreview) URL.revokeObjectURL(imagePreview);
+    };
+  }, [imagePreview]);
 
   const loadData = async () => {
     try {
@@ -57,8 +95,6 @@ export default function ProduitsProducteur() {
       // Donc on compare avec user.producteur_id (pas user.id).
       const mine = allProduits.filter(p => Number(p.producteur_id) === Number(user?.producteur_id));
       const others = allProduits.filter(p => Number(p.producteur_id) !== Number(user?.producteur_id));
-
-
 
       console.log("MES PRODUITS :", mine);
       console.log("MARCHÉ :", others);
@@ -95,8 +131,6 @@ export default function ProduitsProducteur() {
         payload.append('image', form.imageFile);
       }
 
-
-
       console.log("ENVOI PRODUIT :", payload);
 
       if (editId) {
@@ -109,7 +143,6 @@ export default function ProduitsProducteur() {
         });
       }
 
-
       setForm({
         nom: '',
         prix: '',
@@ -119,8 +152,7 @@ export default function ProduitsProducteur() {
         image: '',
         typeproduit_id: ''
       });
-
-
+      setImagePreview(null);
       setEditId(null);
       setShowForm(false);
 
@@ -260,10 +292,23 @@ export default function ProduitsProducteur() {
               className="border p-2 rounded w-full"
               onChange={(e) => {
                 const file = e.target.files?.[0] || null;
+
+                // Nettoie l'ancien aperçu avant d'en créer un nouveau
+                if (imagePreview) URL.revokeObjectURL(imagePreview);
+
                 setForm({ ...form, imageFile: file, image: file ? file.name : '' });
+                setImagePreview(file ? URL.createObjectURL(file) : null);
               }}
             />
 
+            {/* APERÇU DE L'IMAGE SÉLECTIONNÉE */}
+            {imagePreview && (
+              <img
+                src={imagePreview}
+                alt="Aperçu"
+                className="w-32 h-32 object-cover rounded-xl border"
+              />
+            )}
 
             <textarea className="border p-2 rounded w-full" placeholder="Description"
               value={form.description}
@@ -284,28 +329,52 @@ export default function ProduitsProducteur() {
       {/* LISTE */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
 
-        {list.map(p => (
-          <div key={p.id} className="bg-white p-4 rounded-2xl shadow hover:shadow-xl transition">
+        {list.map(p => {
+          const imageUrl = getImageUrl(p);
 
-            <h3 className="font-bold">{p.nom}</h3>
-            <p className="text-green-600">{p.prix} FCFA</p>
+          return (
+            <div key={p.id} className="bg-white p-4 rounded-2xl shadow hover:shadow-xl transition">
 
-            {viewMode === "mes" ? (
-              <div className="flex gap-2 mt-2">
-                <button className="bg-blue-500 text-white px-3 py-1 rounded">Modifier</button>
-                <button onClick={() => handleDelete(p.id)} className="bg-red-500 text-white px-3 py-1 rounded">
-                  Supprimer
-                </button>
+              {/* IMAGE DU PRODUIT */}
+              {imageUrl ? (
+                <img
+                  src={imageUrl}
+                  alt={p.nom}
+                  className="w-full h-40 object-cover rounded-xl mb-3"
+                  onError={(e) => {
+                    e.target.style.display = 'none';
+                    e.target.nextSibling.style.display = 'flex';
+                  }}
+                />
+              ) : null}
+              <div
+                className="w-full h-40 bg-green-50 rounded-xl mb-3 flex-col items-center justify-center text-green-300 text-sm gap-1"
+                style={{ display: imageUrl ? 'none' : 'flex' }}
+              >
+                <ImageOff className="w-6 h-6" />
+                Pas de photo
               </div>
-            ) : (
-              <button className="mt-2 w-full bg-green-50 text-green-700 py-2 rounded-xl flex justify-center gap-2">
-                <Eye size={16} />
-                Voir
-              </button>
-            )}
 
-          </div>
-        ))}
+              <h3 className="font-bold">{p.nom}</h3>
+              <p className="text-green-600">{p.prix} FCFA</p>
+
+              {viewMode === "mes" ? (
+                <div className="flex gap-2 mt-2">
+                  <button className="bg-blue-500 text-white px-3 py-1 rounded">Modifier</button>
+                  <button onClick={() => handleDelete(p.id)} className="bg-red-500 text-white px-3 py-1 rounded">
+                    Supprimer
+                  </button>
+                </div>
+              ) : (
+                <button className="mt-2 w-full bg-green-50 text-green-700 py-2 rounded-xl flex justify-center gap-2">
+                  <Eye size={16} />
+                  Voir
+                </button>
+              )}
+
+            </div>
+          );
+        })}
 
       </div>
 

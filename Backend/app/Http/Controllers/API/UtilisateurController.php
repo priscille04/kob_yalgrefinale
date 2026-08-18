@@ -4,100 +4,125 @@ namespace App\Http\Controllers\API;
 
 use App\Http\Controllers\Controller;
 use App\Models\Utilisateur;
-use App\Models\Boutique;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Hash;
 
 class UtilisateurController extends Controller
 {
+    /**
+     * Display a listing of the resource.
+     */
     public function index(Request $request)
     {
-        if ($request->has('all')) {
-            return response()->json(Utilisateur::all());
-        }
+        try {
+            // 1. SÉCURITÉ CRUCIALE : On vérifie si l'utilisateur est authentifié
+            $userConnected = $request->user();
 
-        return response()->json(
-            Utilisateur::paginate($request->input('per_page', 15))
-        );
+            if (!$userConnected) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Unauthenticated.'
+                ], 401); // Renvoie un 401 propre et empêche le crash 500
+            }
+
+            // 2. Initialisation de la requête de base
+            $query = Utilisateur::query();
+
+            // 3. Gestion du filtre ?all=true demandé par React
+            if ($request->has('all') && $request->input('all') == 'true') {
+                return response()->json($query->latest()->get());
+            }
+
+            // Gestion de la pagination par défaut
+            return response()->json(
+                $query->latest()->paginate($request->input('per_page', 15))
+            );
+
+        } catch (\Exception $e) {
+            // Capture toute autre erreur interne pour éviter de faire planter l'application
+            return response()->json([
+                'success' => false,
+                'message' => 'Une erreur interne est survenue.',
+                'error' => $e->getMessage()
+            ], 500);
+        }
     }
 
+    /**
+     * Store a newly created resource in storage.
+     */
     public function store(Request $request)
     {
-    $request->validate([
-        'nom' => 'required|string|max:255',
-        'email' => 'required|string|email|max:255|unique:utilisateurs',
-        'telephone' => 'nullable|string|max:255',
-        'mot_de_passe' => 'required|string|min:8',
-        'role' => 'required|string|in:client,producteur,admin',
-        'code_boutique' => 'nullable|string'
-    ]);
-
-
-    $boutique_id = null;
-
-    if ($request->role === 'producteur') {
-
-        if (!$request->code_boutique) {
-            return response()->json([
-                'message' => 'Code boutique requis pour un producteur'
-            ], 422);
-        }
-
-        $boutique = \App\Models\Boutique::where('code_unique', $request->code_boutique)->first();
-
-        if (!$boutique) {
-            return response()->json([
-                'message' => 'Code boutique invalide'
-            ], 422);
-        }
-
-        // IMPORTANT : on récupère bien l'id
-        $boutique_id = $boutique->id;
-    }
-
+        $request->validate([
+            'nom' => 'required|string|max:251',
+            'email' => 'required|string|email|max:251|unique:utilisateurs',
+            'telephone' => 'nullable|string',
+            'mot_de_passe' => 'required|string|min:6',
+            'role' => 'required|string',
+        ]);
 
         $utilisateur = Utilisateur::create([
             'nom' => $request->nom,
             'email' => $request->email,
             'telephone' => $request->telephone,
-            'mot_de_passe' => Hash::make($request->mot_de_passe),
+            'mot_de_passe' => bcrypt($request->mot_de_passe),
             'role' => $request->role,
-            'boutique_id' => $boutique_id
         ]);
 
         return response()->json($utilisateur, 201);
     }
 
-    public function show(Utilisateur $utilisateur)
+    /**
+     * Display the specified resource.
+     */
+    public function show($id)
     {
-        return response()->json($utilisateur);
-    }
+        $utilisateur = Utilisateur::find($id);
 
-    public function update(Request $request, Utilisateur $utilisateur)
-    {
-        $request->validate([
-            'nom' => 'sometimes|required|string|max:255',
-            'email' => 'sometimes|required|string|email|max:255|unique:utilisateurs,email,' . $utilisateur->id,
-            'telephone' => 'nullable|string|max:255',
-            'mot_de_passe' => 'sometimes|required|string|min:8',
-            'role' => 'sometimes|required|string|in:client,producteur,admin'
-        ]);
-
-        if ($request->has('mot_de_passe')) {
-            $request->merge([
-                'mot_de_passe' => Hash::make($request->mot_de_passe)
-            ]);
+        if (!$utilisateur) {
+            return response()->json(['message' => 'Utilisateur introuvable'], 404);
         }
 
-        $utilisateur->update(
-            $request->only('nom', 'email', 'telephone', 'mot_de_passe', 'role')
-        );
+        return response()->json($utilisateur);
+    }
+
+    /**
+     * Update the specified resource in storage.
+     */
+    public function update(Request $request, $id)
+    {
+        $utilisateur = Utilisateur::find($id);
+
+        if (!$utilisateur) {
+            return response()->json(['message' => 'Utilisateur introuvable'], 404);
+        }
+
+        $request->validate([
+            'nom' => 'sometimes|string|max:251',
+            'email' => 'sometimes|string|email|max:251|unique:utilisateurs,email,' . $id,
+            'telephone' => 'nullable|string',
+            'role' => 'sometimes|string',
+        ]);
+
+        $utilisateur->update($request->only('nom', 'email', 'telephone', 'role'));
+
+        if ($request->filled('mot_de_passe')) {
+            $utilisateur->update(['mot_de_passe' => bcrypt($request->mot_de_passe)]);
+        }
 
         return response()->json($utilisateur);
     }
 
-    public function destroy(Utilisateur $utilisateur)
+    /**
+     * Remove the specified resource from storage.
+     */
+    public function destroy($id)
     {
+        $utilisateur = Utilisateur::find($id);
+
+        if (!$utilisateur) {
+            return response()->json(['message' => 'Utilisateur introuvable'], 404);
+        }
+
         $utilisateur->delete();
         return response()->json(null, 204);
     }

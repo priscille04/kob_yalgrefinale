@@ -4,11 +4,11 @@ namespace App\Http\Controllers\API;
 
 use App\Http\Controllers\Controller;
 use App\Models\Utilisateur;
-use App\Models\Boutique;
 use App\Models\Producteur;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
+use Carbon\Carbon;
 
 class AuthController extends Controller
 {
@@ -26,42 +26,24 @@ class AuthController extends Controller
                 'role' => 'required|in:client,producteur'
             ]);
 
-            $role = $request->role;
-            $motDePasse = $request->mot_de_passe;
-
-            // IMPORTANT: pas d’admin auto basé sur l’email.
-            // La création d’admins doit être faite via seeder/commande admin sécurisé.
-
-
             $utilisateur = Utilisateur::create([
                 'nom' => $request->nom,
                 'email' => $request->email,
                 'telephone' => $request->telephone,
-                'mot_de_passe' => Hash::make($motDePasse),
-                'role' => $role
+                'mot_de_passe' => Hash::make($request->mot_de_passe),
+                'role' => strtolower($request->role)
             ]);
 
             // CLIENT
-            if ($role === 'client') {
+            if ($utilisateur->role === 'client') {
                 $utilisateur->client()->create([
                     'adresse' => $request->input('adresse', '')
                 ]);
             }
 
-            // PRODUCTEUR + BOUTIQUE
-            // Important : le front fait ensuite un `check-boutique` => il faut que `boutique_id` soit bien rempli.
-            if ($role === 'producteur') {
-                // Optionnel mais recommandé : exiger le code boutique ici pour éviter les comptes “producteur” incomplets.
-                $request->validate([
-                    //'code_boutique' => 'required'
-                ]);
-
-                //$boutique = Boutique::where('code_unique', $request->code_boutique)->first();
-
-               
-
+            // PRODUCTEUR
+            if ($utilisateur->role === 'producteur') {
                 $utilisateur->producteur()->create([
-                    //'boutique_id' => $boutique->id,
                     'type_culture' => $request->input('type_culture', ''),
                     'localisation' => $request->input('localisation', '')
                 ]);
@@ -85,30 +67,7 @@ class AuthController extends Controller
     }
 
     /**
-     * Resolve role by email (admin vs producteur)
-     * Body: { email: string }
-     */
-    public function resolveRole(Request $request)
-    {
-        $request->validate([
-            'email' => 'required|email'
-        ]);
-
-        $utilisateur = Utilisateur::where('email', $request->email)->first();
-
-        if (!$utilisateur) {
-            return response()->json([
-                'role' => 'none'
-            ], 404);
-        }
-
-        return response()->json([
-            'role' => $utilisateur->role
-        ], 200);
-    }
-
-    /**
-     * LOGIN
+     * LOGIN (email + mot de passe, inchangé — pour client par exemple)
      */
     public function login(Request $request)
     {
@@ -116,7 +75,6 @@ class AuthController extends Controller
             'email' => 'required|email',
             'mot_de_passe' => 'required|string'
         ]);
-
 
         $utilisateur = Utilisateur::where('email', $request->email)->first();
 
@@ -128,6 +86,9 @@ class AuthController extends Controller
             return response()->json(['message' => 'Mot de passe incorrect'], 401);
         }
 
+        $utilisateur->role = strtolower($utilisateur->role);
+        $utilisateur->save();
+
         $utilisateur->load('client', 'producteur');
 
         return response()->json([
@@ -138,74 +99,81 @@ class AuthController extends Controller
     }
 
     /**
-     * REGISTER PRODUCTEUR + BOUTIQUE (IMPORTANT)
+     * SEND OTP (producteur) — génère le code et le log dans laravel.log
      */
-   public function registerProducteur(Request $request)
-{
-    $request->validate([
-        'nom' => 'required',
-        'email' => 'required|email|unique:utilisateurs',
-        'password' => 'required|min:6',
-        //'code_boutique' => 'nullable'
-    ]);
+    public function sendOtp(Request $request)
+    {
+        $request->validate([
+            'telephone' => 'required|string'
+        ]);
 
-   
-    $user = Utilisateur::create([
-        'nom' => $request->nom,
-        'email' => $request->email,
-        'mot_de_passe' => Hash::make($request->password),
-        'role' => 'producteur'
-    ]);
+        $utilisateur = Utilisateur::where('telephone', $request->telephone)
+            ->where('role', 'producteur')
+            ->first();
 
-    $producteur = Producteur::create([
-        'utilisateur_id' => $user->id,
-        //'boutique_id' => $boutique->id,
-        'type_culture' => '',
-        'localisation' => ''
-    ]);
+        if (!$utilisateur) {
+            return response()->json(['message' => 'Aucun producteur trouvé avec ce numéro'], 404);
+        }
 
-    return response()->json([
-        'user' => $user,
-        'producteur' => $producteur,
-        //'boutique' => $boutique
-    ], 201);
-}
-    /*CHECK BOUTIQUE
+        $code = str_pad((string) random_int(0, 999999), 6, '0', STR_PAD_LEFT);
+
+        $utilisateur->otp_code = $code;
+        $utilisateur->otp_expires_at = Carbon::now()->addMinutes(5);
+        $utilisateur->save();
+
+        Log::info("OTP généré pour le producteur {$utilisateur->telephone} : {$code}");
+
+        return response()->json([
+            'message' => 'Code OTP envoyé (voir laravel.log pour la démo)'
+        ]);
+    }
+
+    /**
+     * VERIFY OTP (producteur) — vérifie le code et connecte
      */
-   public function checkBoutique(Request $request)
-{
-    $request->validate([
-        'user_id' => 'required|exists:utilisateurs,id',
-        'code_boutique' => 'required'
-    ]);
+    public function verifyOtp(Request $request)
+    {
+        $request->validate([
+            'telephone' => 'required|string',
+            'otp' => 'required|string'
+        ]);
 
-    $user = Utilisateur::with('producteur.boutique')->find($request->user_id);
+        $utilisateur = Utilisateur::where('telephone', $request->telephone)
+            ->where('role', 'producteur')
+            ->first();
 
-    if (!$user || !$user->producteur) {
+        if (!$utilisateur) {
+            return response()->json(['message' => 'Aucun producteur trouvé avec ce numéro'], 404);
+        }
+
+        if (!$utilisateur->otp_code || !$utilisateur->otp_expires_at) {
+            return response()->json(['message' => 'Aucun code OTP demandé'], 400);
+        }
+
+        if (Carbon::now()->greaterThan($utilisateur->otp_expires_at)) {
+            return response()->json(['message' => 'Code OTP expiré'], 401);
+        }
+
+        if ($utilisateur->otp_code !== $request->otp) {
+            return response()->json(['message' => 'Code OTP incorrect'], 401);
+        }
+
+        // OTP valide -> on le consomme
+        $utilisateur->otp_code = null;
+        $utilisateur->otp_expires_at = null;
+        $utilisateur->save();
+
+        $utilisateur->load('client', 'producteur');
+
         return response()->json([
-            'message' => 'Utilisateur non producteur'
-        ], 400);
+            'message' => 'Connexion réussie',
+            'utilisateur' => $this->formatUser($utilisateur),
+            'token' => $utilisateur->createToken('auth_token')->plainTextToken
+        ]);
     }
 
-    if (!$user->producteur->boutique) {
-        return response()->json([
-            'message' => 'Aucune boutique liée à ce producteur'
-        ], 400);
-    }
-
-    if ($user->producteur->boutique->code_unique !== $request->code_boutique) {
-        return response()->json([
-            'message' => 'Code incorrect'
-        ], 403);
-    }
-
-    return response()->json([
-        'message' => 'OK'
-    ]);
-}
-
-    /*
-     ME (pour /api/auth/me)
+    /**
+     * ME
      */
     public function me(Request $request)
     {
@@ -214,40 +182,32 @@ class AuthController extends Controller
         ]);
     }
 
-    /*
-      LOGOUT (pour /api/auth/logout)
+    /**
+     * LOGOUT
      */
     public function logout(Request $request)
     {
-        // invalide tous les tokens de l’utilisateur courant
         $request->user()?->tokens()?->delete();
 
         return response()->json(['message' => 'Déconnexion réussie']);
     }
 
-    /*REFRESH TOKEN (pour /api/auth/refresh)
-     */
-    public function refreshToken(Request $request)
-    {
-        $token = $request->user()->createToken('auth_token')->plainTextToken;
-
-        return response()->json([
-            'token' => $token,
-            'utilisateur' => $this->formatUser($request->user())
-        ]);
-    }
-
-    /*FORMAT USER
+    /**
+     * FORMAT USER
      */
     private function formatUser(Utilisateur $utilisateur): array
     {
-        $data = $utilisateur->toArray();
-        $data['client_id'] = $utilisateur->client?->id;
-        $data['producteur_id'] = $utilisateur->producteur?->id;
+        return [
+            'id' => $utilisateur->id,
+            'nom' => $utilisateur->nom,
+            'email' => $utilisateur->email,
+            'role' => $utilisateur->role,
 
-        unset($data['client'], $data['producteur']);
+            'client_id' => optional($utilisateur->client)->id,
+            'producteur_id' => optional($utilisateur->producteur)->id,
 
-        return $data;
+            'client' => $utilisateur->client,
+            'producteur' => $utilisateur->producteur,
+        ];
     }
 }
-

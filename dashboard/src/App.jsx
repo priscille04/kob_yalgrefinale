@@ -33,8 +33,12 @@ import Contact from './pages/public/Contact';
 import APropos from './pages/public/APropos';
 import VideoPublic from './pages/public/VideoPublic'; 
 
-
-
+  import ConfirmerCommande from "./pages/client/ConfirmerCommande";
+import CommandeClient from "./pages/client/CommandeClient";
+import DashboardClient from "./pages/client/DashboardClient";
+import MessageClient from "./pages/client/MessageClient";
+import Notification from "./pages/client/Notification";
+import ValiderPayement from "./pages/client/ValiderPayement";
 
 export default function App() {
   return (
@@ -47,14 +51,7 @@ export default function App() {
           <Route path="/" element={<PublicHome />} />
           <Route path="/marcher" element={<MarchePublic />} />
           <Route path="/VideoPublic" element={<VideoPublic />} />
-          <Route
-            path="/contact"
-            element={
-              <PublicLayout>
-                <Contact />
-              </PublicLayout>
-            }
-          />
+          <Route path="/contact" element={<Contact /> }/>
           <Route
             path="/apropos"
             element={
@@ -78,16 +75,23 @@ export default function App() {
             <Route path="boutiques" element={<Boutiques />} />
             <Route path="*" element={<div className="flex items-center justify-center h-64"><p className="text-gray-500 text-lg">Page introuvable (404)</p></div>} />
           </Route>
-          <Route path="//dashboard-producteur" element={<DashboardProducteur />} />
+          <Route path="/dashboard-producteur" element={<DashboardProducteur />} />
           <Route path="/dashboard-producteur/conseils" element={<ConseilsProducteur />} />
           <Route path="/producteur/dashboard/produits" element={<ProduitsProducteur />} />
           <Route path="/dashboard-producteur/commandes" element={<CommandesProducteur />} />
           <Route path="/dashboard-producteur/notifications" element={<NotificationsProducteur />} />
 
           <Route path="/conversation/:id" element={<Conversation />} />
-
-
-
+              
+            
+           <Route path="/client/notifications" element={<Notification />} />
+          <Route path="/ConfirmerCommande" element={<ConfirmerCommande />} />
+          <Route path="/client/commandes/" element={<CommandeClient />} />  
+          <Route path="/client/dashboard-client" element={<DashboardClient />} />
+            <Route path="/client/notifications" element={<Notification />} />
+            
+              <Route path="/MessagesClient" element={<MessageClient />} />
+              <Route path="client/valider-payement" element={<ValiderPayement />} />
 
         </Routes>
       </BrowserRouter>

@@ -1,43 +1,30 @@
 import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
+import api from '../../api/axios';
 import { Leaf, Loader2 } from 'lucide-react';
 
 export default function LoginProducteur() {
-  const [email, setEmail] = useState('');
-  const [motDePasse, setMotDePasse] = useState('');
+  const [telephone, setTelephone] = useState('');
+  const [otp, setOtp] = useState('');
 
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
-  const [step, setStep] = useState('email'); // email | password
+  const [step, setStep] = useState('telephone'); // telephone | otp
 
-  const { login } = useAuth();
+  const { loginWithToken } = useAuth();
   const navigate = useNavigate();
 
-  const submitEmail = async (e) => {
+  // ETAPE 1 : envoi du téléphone -> génération OTP (loggé côté Laravel)
+  const submitTelephone = async (e) => {
     e.preventDefault();
     setError('');
     setLoading(true);
 
     try {
-      const mail = email?.trim().toLowerCase();
-
-      // On détermine le rôle en base
-      const res = await api.post('/v1/auth/resolve-role', { email: mail });
-      const role = res?.data?.role;
-
-      if (role === 'admin') {
-        navigate('/login', { state: { email: mail } });
-        return;
-      }
-
-      if (role !== 'producteur') {
-        setError('Ce compte n’est pas un producteur');
-        return;
-      }
-
-      setStep('password');
+      await api.post('/producteur/send-otp', { telephone });
+      setStep('otp');
     } catch (err) {
       setError(err?.response?.data?.message || err?.message || 'Erreur');
     } finally {
@@ -45,13 +32,17 @@ export default function LoginProducteur() {
     }
   };
 
-  const handleSubmit = async (e) => {
+  // ETAPE 2 : vérification du code OTP -> connexion
+  const submitOtp = async (e) => {
     e.preventDefault();
     setError('');
     setLoading(true);
 
     try {
-      const data = await login(email, motDePasse);
+      const { data } = await api.post('/producteur/verify-otp', {
+        telephone,
+        otp,
+      });
 
       const utilisateur = data?.utilisateur;
       if (utilisateur?.role !== 'producteur') {
@@ -59,9 +50,10 @@ export default function LoginProducteur() {
         return;
       }
 
+      loginWithToken({ utilisateur, token: data.token });
       navigate('/dashboard-producteur');
     } catch (err) {
-      setError(err?.response?.data?.message || err?.message || 'Erreur de connexion');
+      setError(err?.response?.data?.message || err?.message || 'Code OTP invalide');
     } finally {
       setLoading(false);
     }
@@ -74,9 +66,11 @@ export default function LoginProducteur() {
           <div className="w-16 h-16 bg-green-600 rounded-2xl flex items-center justify-center mb-4">
             <Leaf className="w-8 h-8 text-white" />
           </div>
-          <h1 className="text-2xl font-bold text-gray-900">Connexion</h1>
+          <h1 className="text-2xl font-bold text-gray-900">Connexion Producteur</h1>
           <p className="text-gray-500 mt-1">
-            {step === 'email' ? 'Entrez votre email' : 'Entrez votre mot de passe'}
+            {step === 'telephone'
+              ? 'Entrez votre numéro de téléphone'
+              : 'Entrez le code reçu'}
           </p>
         </div>
 
@@ -86,15 +80,15 @@ export default function LoginProducteur() {
           </div>
         )}
 
-        {step === 'email' ? (
-          <form onSubmit={submitEmail} className="space-y-4">
+        {step === 'telephone' ? (
+          <form onSubmit={submitTelephone} className="space-y-4">
             <input
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
+              type="tel"
+              value={telephone}
+              onChange={(e) => setTelephone(e.target.value)}
               required
               className="w-full px-4 py-2.5 border border-gray-300 rounded-lg"
-              placeholder="Adresse email"
+              placeholder="Numéro de téléphone"
             />
 
             <button
@@ -103,27 +97,28 @@ export default function LoginProducteur() {
               className="w-full bg-green-600 text-white py-2.5 rounded-lg flex items-center justify-center gap-2"
             >
               {loading && <Loader2 className="w-4 h-4 animate-spin" />}
-              Continuer
+              Envoyer le code
             </button>
           </form>
         ) : (
-          <form onSubmit={handleSubmit} className="space-y-4">
+          <form onSubmit={submitOtp} className="space-y-4">
             <input
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
+              type="tel"
+              value={telephone}
+              onChange={(e) => setTelephone(e.target.value)}
               required
               className="w-full px-4 py-2.5 border border-gray-300 rounded-lg"
-              placeholder="Adresse email"
+              placeholder="Numéro de téléphone"
             />
 
             <input
-              type="password"
-              value={motDePasse}
-              onChange={(e) => setMotDePasse(e.target.value)}
+              type="text"
+              value={otp}
+              onChange={(e) => setOtp(e.target.value)}
               required
-              className="w-full px-4 py-2.5 border border-gray-300 rounded-lg"
-              placeholder="Mot de passe"
+              maxLength={6}
+              className="w-full px-4 py-2.5 border border-gray-300 rounded-lg tracking-widest text-center text-lg"
+              placeholder="Code OTP"
             />
 
             <button
@@ -133,6 +128,14 @@ export default function LoginProducteur() {
             >
               {loading && <Loader2 className="w-4 h-4 animate-spin" />}
               Se connecter
+            </button>
+
+            <button
+              type="button"
+              onClick={() => setStep('telephone')}
+              className="w-full text-sm text-gray-500 hover:underline"
+            >
+              Modifier le numéro
             </button>
           </form>
         )}
@@ -147,5 +150,3 @@ export default function LoginProducteur() {
     </div>
   );
 }
-
-

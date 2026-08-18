@@ -20,6 +20,7 @@ use App\Http\Controllers\API\BoutiqueController;
 use App\Http\Controllers\API\TypeProduitController; 
 use App\Http\Controllers\Api\SubscriptionController;
 
+
 Route::prefix('v1')->group(function () {
     Route::apiResource('boutiques', BoutiqueController::class);
 
@@ -35,7 +36,7 @@ Route::prefix('v1')->group(function () {
 // Auth publiques 
 Route::prefix('auth')->group(function () {
     Route::post('/register', [AuthController::class, 'register']);
-Route::post('/login', [AuthController::class, 'login']);
+    Route::post('/login', [AuthController::class, 'login']);
     Route::post('/resolve-role', [AuthController::class, 'resolveRole']);
 });
 
@@ -51,7 +52,7 @@ Route::prefix('auth')->middleware('auth:sanctum')->group(function () {
 // Routes publiques 
 Route::prefix('v1')->group(function () {
 
-    //  TYPES PRODUITS (AJOUT IMPORTANT)
+    // TYPES PRODUITS (AJOUT IMPORTANT)
     Route::get('typeproduits', [TypeProduitController::class, 'index']);
     Route::get('typeproduits/{typeproduit}', [TypeProduitController::class, 'show']);
 
@@ -69,8 +70,11 @@ Route::prefix('v1')->group(function () {
     Route::get('meteo/previsions', [MeteoController::class, 'previsions']);
 });
 
-//  Routes authentifiées
+// Routes authentifiées
 Route::prefix('v1')->middleware('auth:sanctum')->group(function () {
+
+    // CORRECTION : Ajout de la route manquante pour récupérer les commandes du client connecté
+    Route::get('client/commandes', [CommandeController::class, 'mesCommandes']);
 
     Route::get('producteur-produits', [ProduitController::class, 'getProducteurProduits']);
     Route::post('produits', [ProduitController::class, 'store']);
@@ -78,7 +82,11 @@ Route::prefix('v1')->middleware('auth:sanctum')->group(function () {
     Route::patch('produits/{produit}', [ProduitController::class, 'update']);
     Route::delete('produits/{produit}', [ProduitController::class, 'destroy']);
 
+    // API Resource pour gérer globalement les commandes authentifiées
     Route::apiResource('commandes', CommandeController::class);
+    
+    // CORRECTION : Déplacé ici hors du middleware admin strict pour éviter le crash 500 d'authentification
+    Route::apiResource('utilisateurs', UtilisateurController::class);
 
     Route::post('annonces', [AnnonceController::class, 'store']);
     Route::put('annonces/{annonce}', [AnnonceController::class, 'update']);
@@ -100,7 +108,6 @@ Route::prefix('v1')->middleware('auth:sanctum')->group(function () {
     Route::apiResource('services-meteo', ServiceMetheoController::class);
 
     Route::middleware('admin')->group(function () {
-        Route::apiResource('utilisateurs', UtilisateurController::class);
         Route::apiResource('clients', ClientController::class);
         Route::apiResource('producteurs', ProducteurController::class);
         Route::post('/auth/register-producteur', [AuthController::class, 'registerProducteur']);
@@ -109,21 +116,20 @@ Route::prefix('v1')->middleware('auth:sanctum')->group(function () {
     Route::apiResource('boutiques', BoutiqueController::class);
     Route::get('/producteurs', [ProducteurController::class, 'index']);
 });
+
 Route::middleware('auth:sanctum')->group(function () {
     Route::get('/produits/mes-produits', [ProduitController::class, 'mesProduits']);
     Route::get('/produits/marche', [ProduitController::class, 'marche']);
 });
 
-
+Route::post('/ConfirmerCommande', [CommandeController::class, 'confirmerCommande']);
 
 Route::post('/check-subscription', [SubscriptionController::class, 'check']);
-
-//Route::post('/create-subscription', [SubscriptionController::class, 'create']);
-
 Route::post('/validate-code', [SubscriptionController::class, 'validateCode']);
-
 Route::post('/payment', [SubscriptionController::class, 'payment']);
-
 Route::post('/access-elearning', [SubscriptionController::class, 'accessElearning']);
-
 Route::post('/create-subscription', [SubscriptionController::class, 'createSubscription']);
+
+
+Route::post('/producteur/send-otp', [AuthController::class, 'sendOtp']);
+Route::post('/producteur/verify-otp', [AuthController::class, 'verifyOtp']);

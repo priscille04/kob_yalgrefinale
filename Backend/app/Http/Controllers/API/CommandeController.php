@@ -68,33 +68,53 @@ class CommandeController extends Controller
         );
     }
 
-    public function store(Request $request)
-    {
-        $request->validate([
-            'client_id' => 'required|exists:clients,id',
-            'produit_id' => 'required|exists:produits,id',
-            'quantite' => 'required|integer|min:1',
-        ]);
+   public function store(Request $request)
+{
+    $request->validate([
+        'produit_id' => 'required|exists:produits,id',
+        'quantite'   => 'required|integer|min:1',
+    ]);
 
-        $produit = Produit::findOrFail($request->produit_id);
+    // Utilisateur connecté grâce au token Sanctum
+    $utilisateur = $request->user();
 
-        if ($produit->quantite < $request->quantite) {
-            return response()->json(['message' => 'Stock insuffisant'], 422);
-        }
-
-        $commande = Commande::create([
-            'client_id' => $request->client_id,
-            'produit_id' => $request->produit_id,
-            'quantite' => $request->quantite,
-            'total' => $produit->prix * $request->quantite,
-            'statut' => 'en_attente',
-        ]);
-
-        return response()->json(
-            $commande->load('client.utilisateur', 'produit.producteur.utilisateur'),
-            201
-        );
+    if (!$utilisateur) {
+        return response()->json([
+            'message' => 'Utilisateur non authentifié.'
+        ], 401);
     }
+
+    // Récupération du client lié à cet utilisateur
+    $client = $utilisateur->client;
+
+    if (!$client) {
+        return response()->json([
+            'message' => 'Aucun profil client associé à cet utilisateur.'
+        ], 404);
+    }
+
+    $produit = Produit::findOrFail($request->produit_id);
+
+    // Vérification du stock
+    if ($produit->quantite < $request->quantite) {
+        return response()->json([
+            'message' => 'Stock insuffisant.'
+        ], 422);
+    }
+
+    $commande = Commande::create([
+        'client_id'  => $client->id,
+        'produit_id' => $produit->id,
+        'quantite'   => $request->quantite,
+        'total'      => $produit->prix * $request->quantite,
+        'statut'     => 'en_attente',
+    ]);
+
+    return response()->json(
+        $commande->load('client.utilisateur', 'produit.producteur.utilisateur'),
+        201
+    );
+}
 
     public function show(Commande $commande)
     {
@@ -118,6 +138,32 @@ class CommandeController extends Controller
     public function destroy(Commande $commande)
     {
         $commande->delete();
+
         return response()->json(null, 204);
     }
+public function mesCommandes(Request $request)
+{
+    $utilisateur = $request->user();
+
+    if (!$utilisateur) {
+        return response()->json([
+            'message' => 'Utilisateur non connecté'
+        ], 401);
+    }
+
+    $client = $utilisateur->client;
+
+    if (!$client) {
+        return response()->json([
+            'message' => 'Aucun profil client associé'
+        ], 404);
+    }
+
+    $commandes = Commande::with('produit')
+        ->where('client_id', $client->id)
+        ->latest()
+        ->get();
+
+    return response()->json($commandes);
+}
 }

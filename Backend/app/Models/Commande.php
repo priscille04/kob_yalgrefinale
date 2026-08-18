@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 class Commande extends Model
 {
     protected $fillable = [
+        'reference_panier',
         'client_id',
         'produit_id',
         'quantite',

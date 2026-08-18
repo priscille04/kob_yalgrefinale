@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'providers/auth_provider.dart';
+import 'providers/cart_provider.dart';
 import 'screens/login_screen.dart';
 import 'screens/register_screen.dart';
 import 'screens/home_screen.dart';
@@ -24,8 +25,11 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ChangeNotifierProvider(
-      create: (_) => AuthProvider(),
+    return MultiProvider(
+      providers: [
+        ChangeNotifierProvider(create: (_) => AuthProvider()),
+        ChangeNotifierProvider(create: (_) => CartProvider()),
+      ],
       child: Consumer<AuthProvider>(
         builder: (context, auth, _) {
           return MaterialApp(
@@ -41,13 +45,13 @@ class MyApp extends StatelessWidget {
                     body: Center(child: CircularProgressIndicator()),
                   )
                 : (auth.isAuthenticated
-                      ? const HomeScreen()
-                      : const LoginScreen()),
+                    ? const HomeScreen()
+                    : const LoginScreen()),
             onGenerateRoute: (settings) {
               final isAuth = auth.isAuthenticated;
               final route = settings.name;
 
-              // Routes publiques — accessibles sans auth
+              // Routes publiques
               if (route == '/login' || route == '/register') {
                 return MaterialPageRoute(
                   builder: (_) => route == '/login'
@@ -57,7 +61,7 @@ class MyApp extends StatelessWidget {
                 );
               }
 
-              // Routes protégées — redirection vers login si non auth
+              // Routes protégées
               if (!isAuth) {
                 return MaterialPageRoute(
                   builder: (_) => const LoginScreen(),
@@ -87,7 +91,7 @@ class MyApp extends StatelessWidget {
                 );
               }
 
-              // Route inconnue — retour à l'accueil
+              // Route inconnue
               return MaterialPageRoute(
                 builder: (_) => const HomeScreen(),
                 settings: settings,
