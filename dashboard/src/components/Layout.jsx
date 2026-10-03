@@ -1,8 +1,9 @@
 import { NavLink, Outlet, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { LayoutDashboard, Users, ShoppingCart, Package,Megaphone, BookOpen, LogOut, Leaf, Menu, X, Tags, Bell} from 'lucide-react';
+import { LayoutDashboard, Users, ShoppingCart, Package,Megaphone, BookOpen, LogOut, Leaf, Menu, X, Tags, Bell, CloudSun} from 'lucide-react';
 import { useState } from 'react';
 import { Store } from "lucide-react";
+import Meteo from './Meteo'; // adapte le chemin selon l'emplacement de Meteo.jsx
 
 const navItems = [
     { to: '/admin', icon: LayoutDashboard, label: 'Tableau de bord' },
@@ -21,6 +22,7 @@ export default function Layout() {
     const { user, logout } = useAuth();
     const navigate = useNavigate();
     const [sidebarOpen, setSidebarOpen] = useState(false);
+    const [meteoOpen, setMeteoOpen] = useState(false);
 
     const handleLogout = () => {
         logout();
@@ -61,7 +63,7 @@ export default function Layout() {
                         <NavLink
                             key={to}
                             to={to}
-                            end={to === '/'}
+                            end={to === '/admin'}
                             onClick={() => setSidebarOpen(false)}
                             className={({ isActive }) =>
                                 `flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all duration-200 ${
@@ -102,10 +104,10 @@ export default function Layout() {
             </aside>
 
             {/* MAIN */}
-            <div className="flex-1 flex flex-col">
+            <div className="flex-1 flex flex-col min-w-0">
 
                 {/* HEADER */}
-                <header className="bg-white/80 backdrop-blur-xl border-b border-green-100 px-6 py-5 flex items-center justify-between shadow-sm">
+                <header className="relative bg-white/80 backdrop-blur-xl border-b border-green-100 px-6 py-5 flex items-center justify-between gap-3 shadow-sm">
 
                     <div>
                         <h2 className="text-xl font-bold text-gray-800">
@@ -116,12 +118,23 @@ export default function Layout() {
                         </p>
                     </div>
 
-                    <button
-                        className="lg:hidden bg-green-600 text-white p-2 rounded-lg shadow"
-                        onClick={() => setSidebarOpen(true)}
-                    >
-                        <Menu className="w-6 h-6" />
-                    </button>
+                    <div className="flex items-center gap-2 shrink-0">
+                        {/* BOUTON MÉTÉO */}
+                        <button
+                            onClick={() => setMeteoOpen((o) => !o)}
+                            className="flex items-center gap-2 bg-green-600 hover:bg-green-700 text-white px-3 py-2 rounded-lg shadow text-sm font-medium"
+                        >
+                            <CloudSun className="w-5 h-5" />
+                            <span className="hidden sm:inline">Météo</span>
+                        </button>
+
+                        <button
+                            className="lg:hidden bg-green-600 text-white p-2 rounded-lg shadow"
+                            onClick={() => setSidebarOpen(true)}
+                        >
+                            <Menu className="w-6 h-6" />
+                        </button>
+                    </div>
                 </header>
 
                 {/* CONTENT */}
@@ -132,6 +145,29 @@ export default function Layout() {
                 </main>
 
             </div>
+
+            {/* PANNEAU MÉTÉO : fixé à l'écran, au-dessus de tout */}
+            {meteoOpen && (
+                <>
+                    {/* clic en dehors = fermer */}
+                    <div
+                        className="fixed inset-0 z-[55]"
+                        onClick={() => setMeteoOpen(false)}
+                    />
+                    <div className="fixed right-4 top-24 z-[60] w-96 max-w-[calc(100vw-2rem)]">
+                        <div className="relative">
+                            <button
+                                onClick={() => setMeteoOpen(false)}
+                                aria-label="Fermer la météo"
+                                className="absolute top-3 right-3 z-10 text-white/80 hover:text-white"
+                            >
+                                <X className="w-5 h-5" />
+                            </button>
+                            <Meteo />
+                        </div>
+                    </div>
+                </>
+            )}
         </div>
     );
 }

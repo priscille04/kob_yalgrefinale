@@ -16,7 +16,14 @@ use Illuminate\Support\Str;
 
 class AdminController extends Controller
 {
-    
+    /**
+     * Mode démo : uniquement en local ET avec APP_DEBUG=true.
+     * En production, cette méthode renvoie toujours false.
+     */
+    private function isDemoMode(): bool
+    {
+        return app()->environment('local') && config('app.debug');
+    }
 
     public function resetAdminPassword(Request $request)
     {
@@ -35,14 +42,10 @@ class AdminController extends Controller
         $admin->mot_de_passe = Hash::make($plainPassword);
         $admin->save();
 
-        // Dev fallback: if MAIL_MAILER=log (or APP_DEBUG=true), return plaintext
-        // so you can login without an email account.
-        $mailMailer = (string) env('MAIL_MAILER', 'log');
-        $appDebug = (bool) env('APP_DEBUG', false);
-
-        if ($appDebug || $mailMailer === 'log') {
+        // Mode démo : on renvoie le mot de passe dans la réponse (jamais en production)
+        if ($this->isDemoMode()) {
             return response()->json([
-                'message' => 'Mot de passe généré (mode dev, pas d’envoi email)',
+                'message' => 'Mot de passe généré (mode démo, pas d’envoi email)',
                 'plainPassword' => $plainPassword,
             ], 200);
         }
@@ -57,15 +60,19 @@ class AdminController extends Controller
         }
 
         return response()->json(['message' => 'Nouveau mot de passe envoyé par email'], 200);
-
     }
 
+    /**
+     * STEP 1: génère et envoie l'OTP admin.
+     *
+     * POST /api/v1/admin/login/start-otp
+     * Body: { email: string }
+     */
     public function startOtpForAdmin(Request $request)
     {
         $request->validate([
             'email' => 'required|email',
         ]);
-
 
         $utilisateur = Utilisateur::where('email', $request->email)->first();
 
@@ -77,14 +84,12 @@ class AdminController extends Controller
             return response()->json(['message' => 'Identifiants invalides'], 401);
         }
 
-
         $otp = (string) random_int(100000, 999999);
-
 
         $otpHash = Hash::make($otp);
         $expiresAt = Carbon::now()->addMinutes(5);
 
-        // Supprime les OTP trop vieux (et nettoie ceux déjà valides/derniers en pratique).
+        // Supprime les OTP expirés
         AdminOtp::where('email', $utilisateur->email)
             ->where('expires_at', '<', Carbon::now())
             ->delete();
@@ -96,46 +101,27 @@ class AdminController extends Controller
             'attempts' => 0,
         ]);
 
+        // Mode démo : le code est renvoyé dans la réponse (affiché en bas de l'écran)
+        if ($this->isDemoMode()) {
+            Log::info('ADMIN OTP (démo): email=' . $utilisateur->email . ' otp=' . $otp);
+
+            return response()->json([
+                'message' => 'Code OTP généré (mode démo)',
+                'otp_debug' => $otp,
+                'expiresAt' => $expiresAt->toISOString(),
+            ], 200);
+        }
+
+        // Production : envoi par email uniquement
         try {
-            // Debug: trace utile
-            Log::info('ADMIN OTP (debug): email=' . $utilisateur->email . ' otp=' . $otp);
-
-            // Mode dev : évite de bloquer si SMTP échoue (utile pour debug)
-            $mailMailer = (string) env('MAIL_MAILER', 'log');
-            $appDebug = (bool) env('APP_DEBUG', false);
-
-            if ($appDebug || $mailMailer === 'log') {
-                return response()->json([
-                    'message' => 'OTP envoyé (mode dev/log), check JSON au lieu d’email',
-                    'otp' => $otp,
-                    'expiresAt' => $expiresAt->toISOString(),
-                ], 200);
-            }
-
             Mail::to($utilisateur->email)->send(new AdminOtpMail($otp));
         } catch (\Throwable $e) {
             Log::error('AdminOtpMail failed: ' . $e->getMessage());
 
-            // si SMTP échoue, on renvoie au moins l’OTP en clair en mode dev/log
-            $mailMailer = (string) env('MAIL_MAILER', 'log');
-            $appDebug = (bool) env('APP_DEBUG', false);
-
-            if ($appDebug || $mailMailer === 'log') {
-                return response()->json([
-                    'message' => 'OTP généré, mais envoi email a échoué (mode dev/log)',
-                    'otp' => $otp,
-                    'expiresAt' => $expiresAt->toISOString(),
-                ], 200);
-            }
-
             return response()->json([
-                'message' => "OTP généré, mais l’envoi email a échoué",
-                'error' => $e->getMessage(),
+                'message' => 'Le code a été généré, mais l’envoi de l’email a échoué',
             ], 500);
         }
-
-
-
 
         return response()->json([
             'message' => 'Code OTP envoyé par email',
@@ -165,6 +151,12 @@ class AdminController extends Controller
             return response()->json(['message' => 'Code OTP invalide ou expiré'], 401);
         }
 
+        // Protection contre les essais en boucle (6 chiffres = 1 million de combinaisons)
+        if ($adminOtp->attempts >= 5) {
+            $adminOtp->delete();
+            return response()->json(['message' => 'Trop d’essais, demandez un nouveau code'], 429);
+        }
+
         if (!Hash::check($request->otp, $adminOtp->otp_hash)) {
             $adminOtp->increment('attempts');
             return response()->json(['message' => 'Code OTP incorrect'], 401);
@@ -176,18 +168,13 @@ class AdminController extends Controller
             return response()->json(['message' => 'Utilisateur introuvable'], 404);
         }
 
-
         // OTP valide => supprimer tous les OTP de cet email
         AdminOtp::where('email', $utilisateur->email)->delete();
 
         $utilisateur->load('client', 'producteur');
 
-        
         $token = $utilisateur->createToken('auth_token')->plainTextToken;
 
-
-        // formatUser existe dans AuthController, mais on renvoie juste le modèle ici.
-        // Front utilise surtout token + role.
         return response()->json([
             'message' => 'Connexion admin réussie',
             'utilisateur' => $utilisateur,
@@ -195,5 +182,3 @@ class AdminController extends Controller
         ]);
     }
 }
-
-

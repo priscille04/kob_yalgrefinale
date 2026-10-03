@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import api from '../../api/axios';
-import { Leaf, Loader2 } from 'lucide-react';
+import { Leaf, Loader2, KeyRound, X } from 'lucide-react';
 
 export default function LoginProducteur() {
   const [telephone, setTelephone] = useState('');
@@ -13,17 +13,21 @@ export default function LoginProducteur() {
 
   const [step, setStep] = useState('telephone'); // telephone | otp
 
+  // Code OTP renvoyé par le serveur en mode démo (null en production)
+  const [otpDemo, setOtpDemo] = useState(null);
+
   const { loginWithToken } = useAuth();
   const navigate = useNavigate();
 
-  // ETAPE 1 : envoi du téléphone -> génération OTP (loggé côté Laravel)
+  // ETAPE 1 : envoi du téléphone -> génération OTP
   const submitTelephone = async (e) => {
     e.preventDefault();
     setError('');
     setLoading(true);
 
     try {
-      await api.post('/producteur/send-otp', { telephone });
+      const { data } = await api.post('/producteur/send-otp', { telephone });
+      setOtpDemo(data?.otp_debug ?? null);
       setStep('otp');
     } catch (err) {
       setError(err?.response?.data?.message || err?.message || 'Erreur');
@@ -50,6 +54,7 @@ export default function LoginProducteur() {
         return;
       }
 
+      setOtpDemo(null);
       loginWithToken({ utilisateur, token: data.token });
       navigate('/dashboard-producteur');
     } catch (err) {
@@ -132,7 +137,10 @@ export default function LoginProducteur() {
 
             <button
               type="button"
-              onClick={() => setStep('telephone')}
+              onClick={() => {
+                setStep('telephone');
+                setOtpDemo(null);
+              }}
               className="w-full text-sm text-gray-500 hover:underline"
             >
               Modifier le numéro
@@ -147,6 +155,34 @@ export default function LoginProducteur() {
           </Link>
         </p>
       </div>
+
+      {/* Bandeau OTP en bas de l'écran (visible uniquement si le serveur renvoie otp_debug) */}
+      {otpDemo && step === 'otp' && (
+        <div className="fixed bottom-4 left-1/2 -translate-x-1/2 z-50 w-[calc(100%-2rem)] max-w-md">
+          <div className="bg-gray-900 text-white rounded-xl shadow-2xl px-4 py-3 flex items-center gap-3">
+            <KeyRound className="w-5 h-5 text-green-400 shrink-0" />
+            <div className="flex-1">
+              <p className="text-xs text-gray-400">Code OTP (mode démo)</p>
+              <p className="text-2xl font-bold tracking-[0.3em]">{otpDemo}</p>
+            </div>
+            <button
+              type="button"
+              onClick={() => setOtp(otpDemo)}
+              className="bg-green-600 hover:bg-green-500 text-sm px-3 py-1.5 rounded-lg"
+            >
+              Remplir
+            </button>
+            <button
+              type="button"
+              onClick={() => setOtpDemo(null)}
+              aria-label="Fermer"
+              className="text-gray-400 hover:text-white"
+            >
+              <X className="w-4 h-4" />
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

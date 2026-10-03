@@ -121,11 +121,17 @@ class AuthController extends Controller
         $utilisateur->otp_expires_at = Carbon::now()->addMinutes(5);
         $utilisateur->save();
 
-        Log::info("OTP généré pour le producteur {$utilisateur->telephone} : {$code}");
+               Log::info("OTP généré pour le producteur {$utilisateur->telephone} : {$code}");
 
-        return response()->json([
-            'message' => 'Code OTP envoyé (voir laravel.log pour la démo)'
-        ]);
+        $reponse = ['message' => 'Code OTP envoyé'];
+
+        // Mode démo : uniquement en local avec APP_DEBUG=true
+        if (app()->environment('local') && config('app.debug')) {
+            $reponse['message'] = 'Code OTP généré (mode démo)';
+            $reponse['otp_debug'] = $code;
+        }
+
+        return response()->json($reponse);
     }
 
     /**

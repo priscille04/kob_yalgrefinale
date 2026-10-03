@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useNavigate, useLocation, Link } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import api from '../../api/axios';
-import { Leaf, Loader2 } from 'lucide-react';
+import { Leaf, Loader2, KeyRound, X } from 'lucide-react';
 
 export default function Login() {
   const { loginWithToken } = useAuth();
@@ -21,6 +21,9 @@ export default function Login() {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
+  // Code OTP renvoyé par le serveur en mode démo (null en production)
+  const [otpDemo, setOtpDemo] = useState(null);
+
   //  ADMIN - envoyer OTP
   const startOtp = async (e) => {
     e.preventDefault();
@@ -28,7 +31,8 @@ export default function Login() {
     setError('');
 
     try {
-      await api.post('/v1/admin/login/start-otp', { email });
+      const { data } = await api.post('/v1/admin/login/start-otp', { email });
+      setOtpDemo(data?.otp_debug ?? null);
       setStep('otp');
     } catch (err) {
       setError(err.response?.data?.message || 'Erreur envoi OTP');
@@ -49,6 +53,7 @@ export default function Login() {
         otp,
       });
 
+      setOtpDemo(null);
       loginWithToken(data);
       navigate('/admin');
     } catch (err) {
@@ -65,7 +70,8 @@ export default function Login() {
     setError('');
 
     try {
-      await api.post('/producteur/send-otp', { telephone });
+      const { data } = await api.post('/producteur/send-otp', { telephone });
+      setOtpDemo(data?.otp_debug ?? null);
       setStep('otp_producteur');
     } catch (err) {
       setError(err.response?.data?.message || 'Erreur envoi OTP');
@@ -92,6 +98,7 @@ export default function Login() {
         throw new Error('Ce compte n’est pas un producteur');
       }
 
+      setOtpDemo(null);
       loginWithToken({ utilisateur: user, token: data.token });
       navigate('/dashboard-producteur');
     } catch (err) {
@@ -154,6 +161,9 @@ export default function Login() {
       setLoading(false);
     }
   };
+
+  // Le bandeau s'affiche seulement pendant une étape de saisie d'OTP
+  const enEtapeOtp = step === 'otp' || step === 'otp_producteur';
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-green-50 to-emerald-100">
@@ -241,6 +251,14 @@ export default function Login() {
               {loading && <Loader2 className="animate-spin mr-2 w-4 h-4" />}
               Valider
             </button>
+
+            <button
+              type="button"
+              onClick={() => { setStep('email'); setOtpDemo(null); }}
+              className="w-full text-sm text-gray-500 hover:underline"
+            >
+              Modifier l’email
+            </button>
           </form>
         )}
 
@@ -283,7 +301,7 @@ export default function Login() {
 
             <button
               type="button"
-              onClick={() => setStep('telephone')}
+              onClick={() => { setStep('telephone'); setOtpDemo(null); }}
               className="w-full text-sm text-gray-500 hover:underline"
             >
               Modifier le numéro
@@ -327,6 +345,34 @@ export default function Login() {
           Pas de compte ? <Link to="/register" className="text-green-600 font-medium hover:underline">S’inscrire</Link>
         </p>
       </div>
+
+      {/* Bandeau OTP en bas de l'écran (visible uniquement si le serveur renvoie otp_debug) */}
+      {otpDemo && enEtapeOtp && (
+        <div className="fixed bottom-4 left-1/2 -translate-x-1/2 z-50 w-[calc(100%-2rem)] max-w-md">
+          <div className="bg-gray-900 text-white rounded-xl shadow-2xl px-4 py-3 flex items-center gap-3">
+            <KeyRound className="w-5 h-5 text-green-400 shrink-0" />
+            <div className="flex-1">
+              <p className="text-xs text-gray-400">Code OTP (mode démo)</p>
+              <p className="text-2xl font-bold tracking-[0.3em]">{otpDemo}</p>
+            </div>
+            <button
+              type="button"
+              onClick={() => setOtp(otpDemo)}
+              className="bg-green-600 hover:bg-green-500 text-sm px-3 py-1.5 rounded-lg"
+            >
+              Remplir
+            </button>
+            <button
+              type="button"
+              onClick={() => setOtpDemo(null)}
+              aria-label="Fermer"
+              className="text-gray-400 hover:text-white"
+            >
+              <X className="w-4 h-4" />
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
